@@ -1,0 +1,157 @@
+"""In-memory survey registry + parse orchestration.
+
+ponytail: registry is a dict, uploads live under data/uploads/<id>/. A restart drops
+the registry (files stay). Swap for SQLite + a job queue when a second process needs
+to see the same surveys.
+"""
+
+from __future__ import annotations
+
+import secrets
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+
+import numpy as np
+
+from backend.ingest.models import SurveyMeta
+from backend.ingest.xtf import read_survey
+
+UPLOAD_DIR = Path("data/uploads")
+MAX_BYTES = 500 * 1024 * 1024        # apiendpoints.md section 9 FILE_TOO_LARGE
+TRACK_MAX_POINTS = 5000              # apiendpoints.md section 4
+
+
+@dataclass
+class Survey:
+    survey_id: str
+    filename: str
+    path: str
+    size_bytes: int
+    created_at: str
+    status: str = "uploaded"
+    meta: SurveyMeta | None = None
+    pings: list | None = None
+    progress: float = 0.0
+    pings_processed: int = 0
+    message: str | None = None
+    detections: list = field(default_factory=list)   # filled at Step 8
+
+    @property
+    def ping_count(self) -> int:
+        return self.meta.ping_count if self.meta else 0
+
+
+SURVEYS: dict[str, Survey] = {}
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def create_survey(filename: str, data: bytes) -> Survey:
+    sid = "svy_" + secrets.token_hex(3)
+    dest = UPLOAD_DIR / sid
+    dest.mkdir(parents=True, exist_ok=True)
+    fpath = dest / filename
+    fpath.write_bytes(data)
+    s = Survey(survey_id=sid, filename=filename, path=str(fpath),
+               size_bytes=len(data), created_at=_now())
+    SURVEYS[sid] = s
+    return s
+
+
+def parse_survey(sid: str) -> None:
+    """Blocking parse — run via BackgroundTasks / asyncio.to_thread."""
+    s = SURVEYS.get(sid)
+    if s is None:
+        return
+    s.status = "parsing"
+    s.message = "Reading ping headers"
+    try:
+        meta, pings = read_survey(s.path)
+        s.meta, s.pings = meta, pings
+        s.pings_processed = meta.ping_count
+        s.progress = 1.0
+        s.status = "ready"
+        s.message = None
+    except Exception as exc:                       # noqa: BLE001 - surfaced to the client
+        s.status = "failed"
+        s.message = f"{type(exc).__name__}: {exc}"
+
+
+def survey_detail(s: Survey) -> dict:
+    m = s.meta
+    return {
+        "survey_id": s.survey_id,
+        "filename": s.filename,
+        "status": s.status,
+        "ping_count": s.ping_count,
+        "samples_per_channel": m.samples_per_channel if m else 0,
+        "range_m": m.range_m if m else 0.0,
+        "frequency_khz": m.frequency_khz if m else 0,
+        "duration_s": m.duration_s if m else 0.0,
+        "altitude_source": m.altitude_source if m else "xtf_header",
+        "altitude_mean_m": m.altitude_mean_m if m else 0.0,
+        "sound_speed_ms": m.sound_speed_ms if m else 0.0,
+        "bounds": (m.bounds if m else
+                   {"north": None, "south": None, "east": None, "west": None}),
+        "start_time": (m.start_time.isoformat().replace("+00:00", "Z")
+                       if m else s.created_at),
+        "warnings": m.warnings if m else [],
+    }
+
+
+def track_geojson(s: Survey) -> dict:
+    pings = s.pings or []
+    coords = [[p.lon, p.lat] for p in pings
+              if np.isfinite(p.lon) and np.isfinite(p.lat)]
+    decimated_from = len(pings)
+    if len(coords) > TRACK_MAX_POINTS:
+        step = int(np.ceil(len(coords) / TRACK_MAX_POINTS))
+        coords = coords[::step]
+    return {
+        "type": "Feature",
+        "geometry": {"type": "LineString", "coordinates": coords},
+        "properties": {"survey_id": s.survey_id, "point_count": len(coords),
+                       "decimated_from": decimated_from},
+    }
+
+
+def _line_length_m(pings) -> float:
+    pts = [(p.lat, p.lon) for p in pings if np.isfinite(p.lat) and np.isfinite(p.lon)]
+    if len(pts) < 2:
+        return 0.0
+    lat = np.array([a for a, _ in pts])
+    lon = np.array([b for _, b in pts])
+    mlat = np.deg2rad(np.nanmean(lat))
+    dn = np.diff(lat) * 111_320.0
+    de = np.diff(lon) * 111_320.0 * np.cos(mlat)
+    return float(np.sum(np.hypot(dn, de)))
+
+
+def stats(s: Survey) -> dict:
+    pings = s.pings or []
+    line_m = _line_length_m(pings)
+    swath = 2.0 * (s.meta.range_m if s.meta else 0.0)
+    area = line_m * swath
+    dets = s.detections
+    by_class: dict[str, int] = {}
+    for d in dets:
+        by_class[d["class"]] = by_class.get(d["class"], 0) + 1
+    radii = [d["error_radius_m"] for d in dets if d.get("error_radius_m")]
+    mean_r = float(np.mean(radii)) if radii else 0.0
+    review_frac = 0.0
+    if area > 0 and radii:
+        review_frac = min(1.0, sum(np.pi * r * r for r in radii) / area)
+    headline = (f"{area:,.0f} m\u00b2 surveyed \u00b7 {len(dets)} targets \u00b7 "
+                f"review {review_frac * 100:.0f}% of the area instead of 100%")
+    return {
+        "area_surveyed_m2": round(area, 1),
+        "line_length_km": round(line_m / 1000.0, 2),
+        "targets_flagged": len(dets),
+        "targets_by_class": by_class,
+        "review_area_fraction": round(review_frac, 4),
+        "mean_error_radius_m": round(mean_r, 1),
+        "headline": headline,
+    }

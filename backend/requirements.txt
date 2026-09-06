@@ -1,0 +1,24 @@
+# Deep-Sight backend — Python 3.11
+# Unpinned to match implementation_garv.md section 1. Pin later if reproducibility bites.
+
+# API + serving
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+
+# XTF parsing + geodesy (parse/project only — geometry is our code)
+pyxtf
+pyproj
+
+# Numerics + signal processing
+numpy
+scipy
+PyWavelets
+opencv-python
+
+# Detection
+ultralytics
+
+# Tests
+pytest

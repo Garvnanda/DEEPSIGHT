@@ -1,0 +1,23 @@
+# Sonar data — never committed (implementation_garv.md ground rule 4)
+data/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Training output (ultralytics) + pretrained-weight downloads
+runs/
+/yolov8*.pt
+/yolo11*.pt
+# trained weights we DO keep: backend/detect/weights/best.pt (not ignored)
+
+# OS
+.DS_Store
+Thumbs.db
+
+# code bundle for Colab upload (regenerate anytime)
+/deepsight_code.zip
