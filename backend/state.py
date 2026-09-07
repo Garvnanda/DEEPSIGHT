@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import secrets
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
@@ -36,6 +36,7 @@ class Survey:
     pings_processed: int = 0
     message: str | None = None
     detections: list = field(default_factory=list)   # filled at Step 8
+    prerendered: object = None    # (n_pings, width) uint8 for demo surveys; bypasses display chain
 
     @property
     def ping_count(self) -> int:
@@ -58,6 +59,65 @@ def create_survey(filename: str, data: bytes) -> Survey:
     s = Survey(survey_id=sid, filename=filename, path=str(fpath),
                size_bytes=len(data), created_at=_now())
     SURVEYS[sid] = s
+    return s
+
+
+def create_demo_survey(n_tiles: int = 24, width: int = 1024) -> Survey:
+    """Dev/demo only: stack boxed SSS Mine test tiles into a pseudo-survey with a
+    synthetic straight-line track, so the trained detector produces visible results.
+    The Larsen XTF imagery is speckle-only and yields nothing (see project notes).
+    """
+    import glob
+
+    import cv2
+
+    from backend.ingest.models import PingRecord
+
+    tiles = []
+    for f in sorted(glob.glob("data/detect/yolo/images/val/sss_*.jpg")):
+        lf = f.replace("images", "labels").replace(".jpg", ".txt")
+        try:
+            if Path(lf).read_text().strip():
+                tiles.append(f)
+        except FileNotFoundError:
+            pass
+        if len(tiles) >= n_tiles:
+            break
+    if not tiles:
+        raise RuntimeError("no boxed SSS tiles under data/detect/yolo/images/val")
+
+    wf = np.vstack([cv2.resize(cv2.imread(f, cv2.IMREAD_GRAYSCALE), (width, width))
+                    for f in tiles]).astype(np.uint8)
+    n = wf.shape[0]
+
+    lat0, lon0 = 13.05, 80.30                     # off Chennai - plausible for the PS area
+    c, slant_range_m = 1500.0, 60.0
+    fs = (width // 2) * c / (2 * slant_range_m)
+    dlon = 0.15 / (111_320.0 * np.cos(np.deg2rad(lat0)))
+    t0 = datetime.now(timezone.utc).replace(microsecond=0)
+
+    pings = [PingRecord(
+        ping_number=i, time=t0 + timedelta(seconds=0.2 * i),
+        lat=lat0, lon=lon0 + dlon * i,
+        heading_deg=90.0, pitch_deg=0.0, roll_deg=0.0, heave_m=0.0,
+        altitude_m=12.0, sound_speed_ms=c, sample_rate_hz=fs, slant_range_m=slant_range_m,
+        port=wf[i, :width // 2], starboard=wf[i, width // 2:],
+    ) for i in range(n)]
+
+    meta = SurveyMeta(
+        filename="DEMO-sss-mine-tiles", path="", ping_count=n,
+        samples_per_channel=width // 2, range_m=slant_range_m, frequency_khz=900,
+        duration_s=0.2 * n, altitude_source="xtf_header", altitude_mean_m=12.0,
+        sound_speed_ms=c,
+        bounds={"north": lat0, "south": lat0, "east": lon0 + dlon * n, "west": lon0},
+        start_time=t0, sonar_name="SSS Mine Detection (demo tiles)",
+        recording_program="deepsight-demo",
+        warnings=["Demo survey: SSS Mine Detection test tiles with synthetic navigation."],
+    )
+    s = Survey(survey_id="svy_demo" + secrets.token_hex(2), filename=meta.filename,
+               path="", size_bytes=int(wf.nbytes), created_at=_now(), status="ready",
+               meta=meta, pings=pings, prerendered=wf, progress=1.0, pings_processed=n)
+    SURVEYS[s.survey_id] = s
     return s
 
 

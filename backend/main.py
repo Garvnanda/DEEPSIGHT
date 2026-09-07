@@ -67,6 +67,15 @@ async def upload_survey(file: UploadFile, background: BackgroundTasks) -> dict:
             "status": s.status, "created_at": s.created_at}
 
 
+@app.post("/api/dev/demo-survey", status_code=201)
+def demo_survey() -> dict:
+    """Dev only: register a pseudo-survey from SSS Mine test tiles + synthetic nav, so the
+    frontend has something the trained detector actually fires on. Run /process after."""
+    s = state.create_demo_survey()
+    return {"survey_id": s.survey_id, "filename": s.filename, "status": s.status,
+            "ping_count": s.ping_count}
+
+
 @app.get("/api/surveys")
 def list_surveys() -> dict:
     items = sorted(state.SURVEYS.values(), key=lambda s: s.created_at, reverse=True)
@@ -83,14 +92,33 @@ def get_survey(sid: str) -> dict:
     return state.survey_detail(_get(sid))
 
 
+def _run_detection(sid: str) -> None:
+    from backend.detect.infer import detect_survey
+
+    s = state.SURVEYS.get(sid)
+    if s is None:
+        return
+    try:
+        s.detections = detect_survey(s)
+        s.status = "complete"
+        s.message = f"{len(s.detections)} detections"
+    except Exception as exc:                       # noqa: BLE001 - surfaced via status
+        s.status = "failed"
+        s.message = f"{type(exc).__name__}: {exc}"
+
+
 @app.post("/api/surveys/{sid}/process", status_code=202)
-def process_survey(sid: str) -> dict:
+def process_survey(sid: str, background: BackgroundTasks) -> dict:
     s = _get(sid)
     _need_ready(s)
-    # Step 8: run backend.detect.infer here when weights exist. For now: nothing to run.
-    s.status = "complete"
-    s.message = "Detection model not yet trained — 0 detections."
+    s.status = "processing"
+    s.message = "Running detection"
+    background.add_task(_run_detection, sid)
     return {"survey_id": sid, "status": "processing", "job_id": "job_" + sid[4:]}
+
+
+def _public(d: dict) -> dict:
+    return {k: v for k, v in d.items() if not k.startswith("_")}
 
 
 @app.get("/api/surveys/{sid}/status")
@@ -119,7 +147,10 @@ def get_waterfall(sid: str, start_ping: int, count: int, corrected: bool = False
     pings = (s.pings or [])[start_ping:start_ping + count]
     if not pings:
         raise ApiError("NOT_READY", 409, "no pings in that range", survey_id=sid)
-    u8 = display.to_u8(pings)
+    if s.prerendered is not None:
+        u8 = np.ascontiguousarray(s.prerendered[start_ping:start_ping + count])
+    else:
+        u8 = display.to_u8(pings)
     if corrected:
         u8 = _slant_correct(u8, pings, s.meta.sound_speed_ms)
     ok, buf = cv2.imencode(".png", u8)
@@ -142,9 +173,16 @@ def _slant_correct(u8: np.ndarray, pings, sound_speed_ms: float) -> np.ndarray:
 
 # --- section 3 · detections ---
 @app.get("/api/surveys/{sid}/detections")
-def list_detections(sid: str, **_) -> dict:
+def list_detections(sid: str, cls: str | None = None, min_confidence: float = 0.0,
+                    sort: str = "ping") -> dict:
     s = _get(sid)
-    return {"survey_id": sid, "count": len(s.detections), "detections": s.detections}
+    dets = [d for d in s.detections
+            if (cls is None or d["class"] == cls) and d["confidence"] >= min_confidence]
+    key = {"confidence": lambda d: -d["confidence"],
+           "error_radius": lambda d: (d["error_radius_m"] or 0.0)}.get(sort,
+                                                                       lambda d: d["ping"])
+    dets = sorted(dets, key=key)
+    return {"survey_id": sid, "count": len(dets), "detections": [_public(d) for d in dets]}
 
 
 @app.get("/api/detections/{did}")
@@ -152,7 +190,7 @@ def get_detection(did: str) -> dict:
     for s in state.SURVEYS.values():
         for d in s.detections:
             if d["detection_id"] == did:
-                return {"detection": d, "error_budget": d.get("_error_budget"),
+                return {"detection": _public(d), "error_budget": d.get("_error_budget"),
                         "geometry": d.get("_geometry")}
     raise ApiError("SURVEY_NOT_FOUND", 404, "No such detection.")
 
@@ -236,7 +274,10 @@ async def playback(ws: WebSocket, sid: str):
             await asyncio.sleep(0.1)
             continue
         chunk = pings[cur:cur + batch]
-        u8 = display.to_u8(chunk)
+        if s.prerendered is not None:
+            u8 = np.ascontiguousarray(s.prerendered[cur:cur + batch])
+        else:
+            u8 = display.to_u8(chunk)
         nav = [{
             "ping": cur + i,
             "lat": None if not math.isfinite(p.lat) else p.lat,
@@ -251,6 +292,9 @@ async def playback(ws: WebSocket, sid: str):
             "rows": base64.b64encode(u8.tobytes()).decode(),
             "nav": nav,
         })
+        for d in s.detections:
+            if cur <= d["ping"] < cur + len(chunk):
+                await ws.send_json({"type": "detection", "detection": _public(d)})
         cur += len(chunk)
         if cur % (batch * 8) < batch:
             await ws.send_json({"type": "status", "ping": cur,
