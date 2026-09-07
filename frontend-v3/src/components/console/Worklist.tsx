@@ -18,8 +18,10 @@ export function Worklist({ detections, selectedId, onSelect }: Props) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="border-b px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        Worklist · {sorted.length}
+      <div className="flex items-center gap-2.5 border-b px-3 py-2.5">
+        <span className="label-micro shrink-0">Worklist</span>
+        <div className="tick-rule flex-1" aria-hidden />
+        <span className="tnum shrink-0 text-xs text-muted-foreground">{sorted.length}</span>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto">
         {sorted.length === 0 ? (

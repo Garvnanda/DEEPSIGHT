@@ -7,7 +7,7 @@ import { Topbar } from './Topbar'
 
 export function AppShell() {
   const { pathname } = useLocation()
-  // one key per "screen" — the console keeps a single key across /surveys/:id
+  // one key per "screen"  the console keeps a single key across /surveys/:id
   const key = pathname.startsWith('/surveys/') ? 'console' : pathname
 
   return (
@@ -17,7 +17,7 @@ export function AppShell() {
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar />
           <main className="relative flex-1 overflow-hidden">
-            {/* CSS-only enter animation — keyed remount, nothing to wedge */}
+            {/* CSS-only enter animation  keyed remount, nothing to wedge */}
             <div
               key={key}
               className="h-full overflow-y-auto duration-200 animate-in fade-in slide-in-from-bottom-2"

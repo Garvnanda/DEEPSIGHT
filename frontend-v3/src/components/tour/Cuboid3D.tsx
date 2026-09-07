@@ -13,6 +13,8 @@ interface Props {
   lengthM: number
   heightM: number
   className?: string
+  /** viewport height for the rotating box, px */
+  sceneHeight?: number
 }
 
 const EDGE = { w: 'var(--chart-1)', l: 'var(--chart-2)', h: 'var(--chart-4)' }
@@ -30,12 +32,12 @@ function face(fw: number, fh: number, transform: string, edge: string): CSSPrope
   } as CSSProperties
 }
 
-export function Cuboid3D({ widthM, lengthM, heightM, className }: Props) {
+export function Cuboid3D({ widthM, lengthM, heightM, className, sceneHeight = 250 }: Props) {
   const [paused, setPaused] = useState(false)
 
   const hM = heightM > 0 ? heightM : 0.25
   const maxM = Math.max(widthM, lengthM, hM, 0.1)
-  const scale = 150 / maxM
+  const scale = (sceneHeight * 0.6) / maxM
   const w = Math.max(widthM * scale, 10)
   const d = Math.max(lengthM * scale, 10)
   const h = Math.max(hM * scale, 10)
@@ -44,7 +46,7 @@ export function Cuboid3D({ widthM, lengthM, heightM, className }: Props) {
     <div className={className}>
       <div
         className="cuboid-scene grid place-items-center"
-        style={{ height: 250 }}
+        style={{ height: sceneHeight }}
         data-paused={paused}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
@@ -62,7 +64,7 @@ export function Cuboid3D({ widthM, lengthM, heightM, className }: Props) {
       <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
         <Dim color={EDGE.w} label="Width" value={metres(widthM)} sub="across-track" />
         <Dim color={EDGE.l} label="Length" value={metres(lengthM)} sub="along-track" />
-        <Dim color={EDGE.h} label="Height" value={heightM > 0 ? metres(heightM) : '—'} sub="from shadow" />
+        <Dim color={EDGE.h} label="Height" value={heightM > 0 ? metres(heightM) : ''} sub="from shadow" />
       </dl>
     </div>
   )

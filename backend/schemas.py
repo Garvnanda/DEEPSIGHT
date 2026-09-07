@@ -1,4 +1,4 @@
-"""Pydantic response models — exact shapes from docs/apiendpoints.md (frozen).
+"""Pydantic response models  exact shapes from docs/apiendpoints.md (frozen).
 
 Field names and nesting must not drift from that file. If a shape must change,
 that is a contract change: both humans agree and both implementation docs update

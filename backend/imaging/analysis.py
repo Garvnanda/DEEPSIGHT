@@ -1,8 +1,8 @@
-"""Analysis chain — log transform, nadir-gap mask, wavelet despeckle -> detector input
+"""Analysis chain  log transform, nadir-gap mask, wavelet despeckle -> detector input
 (implementation_garv.md section 4.2).
 
 This is the *analysis* branch. It shares only the raw stacked array with the display
-branch (`display.stack`) and never routes through `display.normalise` — despeckling
+branch (`display.stack`) and never routes through `display.normalise`  despeckling
 makes an image look nicer and destroys the texture statistics the detector needs, so the
 two chains must not cross (idea.md section 6, golden rule).
 

@@ -2,18 +2,18 @@
 // One function per REST endpoint. Matches apiendpoints.md exactly.
 
 import type {
-  ApiErrorBody,
-  ApiErrorResponse,
-  SurveyUploadResponse,
-  SurveyListResponse,
-  SurveyDetail,
-  SurveyStatusResponse,
-  ProcessResponse,
-  DetectionsResponse,
-  DetectionQueryParams,
-  DetectionDetailResponse,
-  SurveyStats,
-  ReportResponse,
+    ApiErrorBody,
+    ApiErrorResponse,
+    DetectionDetailResponse,
+    DetectionQueryParams,
+    DetectionsResponse,
+    ProcessResponse,
+    ReportResponse,
+    SurveyDetail,
+    SurveyListResponse,
+    SurveyStats,
+    SurveyStatusResponse,
+    SurveyUploadResponse,
 } from '../types/api';
 
 const BASE_URL = 'http://localhost:8000';
@@ -61,7 +61,7 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 // --- Endpoints ---
 
 /**
- * POST /api/surveys — Upload an XTF file.
+ * POST /api/surveys  Upload an XTF file.
  * Uses XMLHttpRequest (not fetch) for upload progress tracking.
  */
 export function uploadSurvey(
@@ -146,27 +146,27 @@ export function uploadSurvey(
   });
 }
 
-/** GET /api/surveys — List all surveys, newest first. */
+/** GET /api/surveys  List all surveys, newest first. */
 export function listSurveys(): Promise<SurveyListResponse> {
   return apiFetch('/api/surveys');
 }
 
-/** GET /api/surveys/{id} — Full survey detail for setting up the view. */
+/** GET /api/surveys/{id}  Full survey detail for setting up the view. */
 export function getSurvey(surveyId: string): Promise<SurveyDetail> {
   return apiFetch(`/api/surveys/${surveyId}`);
 }
 
-/** GET /api/surveys/{id}/status — Poll during parsing/processing. Safe every 1s. */
+/** GET /api/surveys/{id}/status  Poll during parsing/processing. Safe every 1s. */
 export function getSurveyStatus(surveyId: string): Promise<SurveyStatusResponse> {
   return apiFetch(`/api/surveys/${surveyId}/status`);
 }
 
-/** POST /api/surveys/{id}/process — Kick off headless detection. */
+/** POST /api/surveys/{id}/process  Kick off headless detection. */
 export function processSurvey(surveyId: string): Promise<ProcessResponse> {
   return apiFetch(`/api/surveys/${surveyId}/process`, { method: 'POST' });
 }
 
-/** GET /api/surveys/{id}/detections — All detections for a survey. */
+/** GET /api/surveys/{id}/detections  All detections for a survey. */
 export function getDetections(
   surveyId: string,
   params?: DetectionQueryParams
@@ -180,12 +180,12 @@ export function getDetections(
   return apiFetch(`/api/surveys/${surveyId}/detections${qs ? `?${qs}` : ''}`);
 }
 
-/** GET /api/detections/{id} — Single detection with error budget + geometry. */
+/** GET /api/detections/{id}  Single detection with error budget + geometry. */
 export function getDetection(detectionId: string): Promise<DetectionDetailResponse> {
   return apiFetch(`/api/detections/${detectionId}`);
 }
 
-/** GET /api/surveys/{id}/track — GeoJSON LineString for the map. */
+/** GET /api/surveys/{id}/track  GeoJSON LineString for the map. */
 export function getTrack(
   surveyId: string
 ): Promise<GeoJSON.Feature<GeoJSON.LineString>> {
@@ -193,7 +193,7 @@ export function getTrack(
 }
 
 /**
- * GET /api/surveys/{id}/waterfall — PNG tile for scrubbing & fallback.
+ * GET /api/surveys/{id}/waterfall  PNG tile for scrubbing & fallback.
  * Returns image/png as a Blob (not JSON).
  */
 export async function getWaterfallTile(
@@ -230,12 +230,12 @@ export async function getWaterfallTile(
   return res.blob();
 }
 
-/** GET /api/surveys/{id}/stats — Headline numbers for the survey. */
+/** GET /api/surveys/{id}/stats  Headline numbers for the survey. */
 export function getStats(surveyId: string): Promise<SurveyStats> {
   return apiFetch(`/api/surveys/${surveyId}/stats`);
 }
 
-/** GET /api/surveys/{id}/report.json — Full report for preview. */
+/** GET /api/surveys/{id}/report.json  Full report for preview. */
 export function getReportJson(surveyId: string): Promise<ReportResponse> {
   return apiFetch(`/api/surveys/${surveyId}/report.json`);
 }

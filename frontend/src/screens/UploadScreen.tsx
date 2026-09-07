@@ -1,9 +1,9 @@
-// UploadScreen — Drop zone, upload progress, parsing status.
+// UploadScreen  Drop zone, upload progress, parsing status.
 // All states: empty, uploading, parsing, failed.
 
-import { useRef, useState, useCallback } from 'react';
-import { useSurveyStore } from '../stores/surveyStore';
+import { useCallback, useRef, useState } from 'react';
 import { ErrorDisplay } from '../components/ErrorDisplay';
+import { useSurveyStore } from '../stores/surveyStore';
 
 export function UploadScreen() {
   const uploadProgress = useSurveyStore((s) => s.uploadProgress);

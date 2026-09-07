@@ -2,8 +2,8 @@
 // Manages connection, reconnection with exponential backoff + jitter,
 // base64 decoding, and dispatching to the playback store.
 
-import type { WsClientMessage, WsServerMessage, WsPingBatch } from '../types/api';
 import { usePlaybackStore, type PingBatchData } from '../stores/playbackStore';
+import type { WsClientMessage, WsPingBatch, WsServerMessage } from '../types/api';
 
 const WS_BASE = 'ws://localhost:8000';
 
@@ -90,7 +90,7 @@ export class PlaybackSocket {
     };
 
     this.ws.onerror = () => {
-      // onclose will fire after this — handle reconnect there
+      // onclose will fire after this  handle reconnect there
     };
   }
 
@@ -136,7 +136,7 @@ export class PlaybackSocket {
       }
 
       default:
-        // Unknown type — silently ignore for forward compatibility
+        // Unknown type  silently ignore for forward compatibility
         break;
     }
   }
@@ -145,8 +145,8 @@ export class PlaybackSocket {
     if (!this.shouldReconnect) return;
 
     if (this.reconnectAttempt >= 5) {
-      // Give up — tile fallback should kick in
-      usePlaybackStore.getState().setError('Connection lost — using cached data');
+      // Give up  tile fallback should kick in
+      usePlaybackStore.getState().setError('Connection lost  using cached data');
       return;
     }
 

@@ -1,4 +1,4 @@
-"""PingRecord, SurveyMeta — the parsed shapes everything downstream consumes.
+"""PingRecord, SurveyMeta  the parsed shapes everything downstream consumes.
 
 Fields follow implementation_garv.md section 3.1: a ping is a header plus two sample
 arrays (port, starboard). SurveyMeta is the once-per-file summary that feeds

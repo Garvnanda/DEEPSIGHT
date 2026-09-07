@@ -173,7 +173,7 @@ def create_image_survey(images: list[tuple[str, bytes]], width: int = 1024) -> S
 
 
 def parse_survey(sid: str) -> None:
-    """Blocking parse — run via BackgroundTasks / asyncio.to_thread."""
+    """Blocking parse  run via BackgroundTasks / asyncio.to_thread."""
     s = SURVEYS.get(sid)
     if s is None:
         return

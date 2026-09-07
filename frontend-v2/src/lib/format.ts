@@ -1,7 +1,7 @@
 // Display formatters. Numbers that reach the screen are formatted here so the whole
 // app is consistent. Null/NaN render as an em-dash, never as 0.
 
-const DASH = '—'
+const DASH = ''
 
 export function num(v: number | null | undefined, digits = 0): string {
   if (v == null || !Number.isFinite(v)) return DASH

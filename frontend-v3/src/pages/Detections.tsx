@@ -5,26 +5,26 @@ import { useSearchParams } from 'react-router-dom'
 import { ClassBadge, ClassDot } from '@/components/common/ClassBadge'
 import { EmptyState } from '@/components/common/EmptyState'
 import { FlagChips } from '@/components/common/FlagChips'
-import { PageContainer } from '@/components/PageContainer'
+import { Panel } from '@/components/common/Panel'
 import { DetectionDetail } from '@/components/detections/DetectionDetail'
-import { Card } from '@/components/ui/card'
+import { PageContainer } from '@/components/PageContainer'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Slider } from '@/components/ui/slider'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from '@/components/ui/table'
 import { useAsync } from '@/hooks/useAsync'
 import { getDetections } from '@/lib/api'
@@ -86,8 +86,10 @@ export function Detections() {
 
   return (
     <PageContainer
+      kicker="Worklist"
       title="Detections"
-      description="Every target the detector flagged, across surveys. Sorted tightest-circle first — those are the ones a team can act on."
+      meta={`${num(rows.length)} shown${data ? ` / ${num(data.length)}` : ''}`}
+      description="Every target the detector flagged, across surveys. Sorted tightest-circle first  those are the ones a team can act on."
       actions={
         <Select value={survey} onValueChange={(v) => setParams(v === ALL ? {} : { survey: v })}>
           <SelectTrigger className="w-[260px]">
@@ -104,10 +106,14 @@ export function Detections() {
         </Select>
       }
     >
-      <Card className="mb-4 gap-3 p-4">
-        <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          <SlidersHorizontal className="size-3.5" /> Filters
-        </div>
+      <Panel
+        className="mb-4"
+        title={
+          <span className="flex items-center gap-1.5">
+            <SlidersHorizontal className="size-3" /> Filters
+          </span>
+        }
+      >
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex flex-wrap gap-1.5">
             {ALL_CLASSES.map((c) => (
@@ -149,9 +155,9 @@ export function Detections() {
             </SelectContent>
           </Select>
         </div>
-      </Card>
+      </Panel>
 
-      <Card className="overflow-hidden p-0">
+      <Panel title="Targets" right={<span className="label-micro">click a row for the derivation</span>} flush>
         {loading ? (
           <div className="space-y-px p-4">
             {[0, 1, 2, 3, 4].map((i) => (
@@ -160,7 +166,7 @@ export function Detections() {
           </div>
         ) : rows.length === 0 ? (
           <EmptyState
-            className="border-0"
+            className="rounded-none border-0"
             icon={<Crosshair className="size-8" />}
             title="No detections match"
             description={
@@ -185,7 +191,7 @@ export function Detections() {
               {rows.map((d) => (
                 <TableRow
                   key={d.detection_id}
-                  className="cursor-pointer"
+                  className="cursor-pointer border-l-2 border-transparent transition-colors hover:border-accent hover:bg-accent/5"
                   onClick={() => select(d.detection_id)}
                 >
                   <TableCell>
@@ -195,7 +201,7 @@ export function Detections() {
                     {num(d.ping)}
                   </TableCell>
                   <TableCell className="tnum text-right text-xs text-muted-foreground">
-                    {d.lat == null ? '—' : `${coord(d.lat)}, ${coord(d.lon)}`}
+                    {d.lat == null ? '' : `${coord(d.lat)}, ${coord(d.lon)}`}
                   </TableCell>
                   <TableCell className="tnum text-right" style={{ color: 'var(--warn)' }}>
                     {metres(d.error_radius_m)}
@@ -211,11 +217,7 @@ export function Detections() {
             </TableBody>
           </Table>
         )}
-      </Card>
-
-      <p className="mt-3 text-xs text-muted-foreground">
-        {rows.length} shown{data ? ` of ${data.length}` : ''}
-      </p>
+      </Panel>
 
       <Sheet open={!!selectedId} onOpenChange={(v) => !v && clear()}>
         <SheetContent className="w-full gap-0 overflow-y-auto sm:max-w-md">

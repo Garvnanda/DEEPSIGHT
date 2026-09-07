@@ -1,10 +1,10 @@
 import {
-  FlaskConical,
-  ImageUp,
-  MoreHorizontal,
-  RefreshCw,
-  Upload,
-  Waves,
+    FlaskConical,
+    ImageUp,
+    MoreHorizontal,
+    RefreshCw,
+    Upload,
+    Waves,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -17,19 +17,19 @@ import { UploadDialog } from '@/components/surveys/UploadDialog'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from '@/components/ui/table'
 import { ApiError, createDemoSurvey, processSurvey } from '@/lib/api'
 import { num, relativeTime } from '@/lib/format'
@@ -46,7 +46,7 @@ export function Surveys() {
   }, [refresh])
 
   const afterCreate = (id: string) => {
-    toast.success('Survey created — parsing and detection are running.')
+    toast.success('Survey created  parsing and detection are running.')
     void refresh()
     navigate(`/surveys/${id}`)
   }

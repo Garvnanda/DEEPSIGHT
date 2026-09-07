@@ -1,17 +1,17 @@
-"""False-alarm suppression — three deterministic rules (implementation_garv.md section 6.3).
+"""False-alarm suppression  three deterministic rules (implementation_garv.md section 6.3).
 
 No second model. Rules run after detection + de-dup.
 
-  Rule 1  shadow direction   — a real proud object throws its acoustic shadow *away*
+  Rule 1  shadow direction    a real proud object throws its acoustic shadow *away*
           from nadir, with the bright highlight on the nadir-facing side. A box whose
           far-side strip is brighter than the box itself has no shadow there and is
           almost certainly an artifact -> dropped. (This does NOT filter rocks; a
           rock's shadow is oriented correctly too.)
-  Rule 2  minimum ground area — remove boxes below a small pixel-area floor. The true
+  Rule 2  minimum ground area  remove boxes below a small pixel-area floor. The true
           version is ~1 m^2 of ground area and needs the geometry module (Step 5) to
           convert; until then this is a conservative pixel floor. ponytail: pixel
           floor, swap for real ground area once geometry lands. Tune against labels.
-  Rule 3  height-to-footprint — shadow length + altitude + range -> object height
+  Rule 3  height-to-footprint  shadow length + altitude + range -> object height
           (geometry/shadow.py); a natural bottom object is roughly as tall as it is wide,
           a manufactured object is not (a pipe is long and low). Runs AFTER geometry, in
           rule3_height_footprint(). ponytail: heuristic ratio band tuned by eye against

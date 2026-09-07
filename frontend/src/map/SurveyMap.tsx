@@ -1,15 +1,15 @@
-// SurveyMap — Leaflet map with track, detection circles in metres, moving marker.
+// SurveyMap  Leaflet map with track, detection circles in metres, moving marker.
 // Dark CARTO basemap. Circles sized by error_radius_m (native metres).
 
-import { useEffect, useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Polyline, Circle, CircleMarker } from 'react-leaflet';
 import type { LatLngBoundsExpression, LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useEffect, useMemo, useState } from 'react';
+import { Circle, CircleMarker, MapContainer, Polyline, TileLayer } from 'react-leaflet';
 
-import { useSurveyStore } from '../stores/surveyStore';
+import * as api from '../api/client';
 import { usePlaybackStore } from '../stores/playbackStore';
 import { useSelectionStore } from '../stores/selectionStore';
-import * as api from '../api/client';
+import { useSurveyStore } from '../stores/surveyStore';
 
 // Class → colour hex (Leaflet can't resolve CSS variables)
 const CLASS_COLOURS: Record<string, string> = {
@@ -63,7 +63,7 @@ export function SurveyMap() {
       if (queue.length > 0) {
         const lastBatch = queue[queue.length - 1];
         const lastNav = lastBatch.nav[lastBatch.nav.length - 1];
-        // Skip null lat/lon — don't draw at 0,0
+        // Skip null lat/lon  don't draw at 0,0
         if (lastNav && lastNav.lat !== null && lastNav.lon !== null) {
           setCurrentPos([lastNav.lat, lastNav.lon]);
         }
@@ -114,7 +114,7 @@ export function SurveyMap() {
         />
       )}
 
-      {/* Detection circles — guard null lat/lon */}
+      {/* Detection circles  guard null lat/lon */}
       {detections
         .filter((det) => det.lat !== null && det.lon !== null)
         .map((det) => (

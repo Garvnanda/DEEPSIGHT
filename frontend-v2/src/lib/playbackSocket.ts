@@ -124,7 +124,7 @@ export class PlaybackSocket {
   private onClose(): void {
     if (!this.alive) return
     if (this.reconnectAttempt >= 5) {
-      this.handlers.onError('Connection lost — falling back to cached tiles.')
+      this.handlers.onError('Connection lost  falling back to cached tiles.')
       return
     }
     const delay = Math.min(500 * 2 ** this.reconnectAttempt, 10000) + Math.random() * 500

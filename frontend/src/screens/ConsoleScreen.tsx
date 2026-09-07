@@ -1,18 +1,18 @@
-// ConsoleScreen — The main 3-zone survey console layout.
+// ConsoleScreen  The main 3-zone survey console layout.
 // Waterfall dominant centre, worklist left, map+detail right.
 
 import { useState } from 'react';
 import { Header } from '../components/Header';
 import { WarningBanner } from '../components/WarningBanner';
-import { WaterfallCanvas } from '../waterfall/WaterfallCanvas';
 import { SurveyMap } from '../map/SurveyMap';
-import { Worklist } from '../panels/Worklist';
 import { DetailPanel } from '../panels/DetailPanel';
 import { StatsBar } from '../panels/StatsBar';
 import { TransportBar } from '../panels/TransportBar';
-import { ReportModal } from './ReportModal';
-import { useSurveyStore } from '../stores/surveyStore';
+import { Worklist } from '../panels/Worklist';
 import { usePlaybackStore } from '../stores/playbackStore';
+import { useSurveyStore } from '../stores/surveyStore';
+import { WaterfallCanvas } from '../waterfall/WaterfallCanvas';
+import { ReportModal } from './ReportModal';
 
 export function ConsoleScreen() {
   const survey = useSurveyStore((s: { currentSurvey: any }) => s.currentSurvey);
@@ -27,7 +27,7 @@ export function ConsoleScreen() {
         {/* Header */}
         <Header onExport={() => setShowReport(true)} />
 
-        {/* Warning banner (if applicable) — spans all columns */}
+        {/* Warning banner (if applicable)  spans all columns */}
         {/* Note: the banner renders conditionally inside itself */}
 
         {/* Left: Worklist */}

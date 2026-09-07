@@ -1,4 +1,4 @@
-// Ring Buffer — Offscreen canvas for waterfall rendering.
+// Ring Buffer  Offscreen canvas for waterfall rendering.
 // Manages a fixed-height canvas that wraps, preventing unbounded memory use
 // for surveys with 40,000+ pings.
 
@@ -30,7 +30,7 @@ export class RingBuffer {
     this.initialized = true;
   }
 
-  /** Total rows written since init — never wraps. Used for scroll offset. */
+  /** Total rows written since init  never wraps. Used for scroll offset. */
   get totalRowsWritten(): number {
     return this._totalRowsWritten;
   }
@@ -60,7 +60,7 @@ export class RingBuffer {
       const imageData = this.ctx.createImageData(width, 1);
       const u32 = new Uint32Array(imageData.data.buffer);
 
-      // Apply colour LUT — one write per pixel instead of four
+      // Apply colour LUT  one write per pixel instead of four
       for (let x = 0; x < width; x++) {
         u32[x] = lut[data[rowOffset + x]];
       }
@@ -102,14 +102,14 @@ export class RingBuffer {
     let readStart = ((this.writeCursor - rowsToDraw) % BUFFER_HEIGHT + BUFFER_HEIGHT) % BUFFER_HEIGHT;
 
     if (readStart + rowsToDraw <= BUFFER_HEIGHT) {
-      // No wrap — single drawImage
+      // No wrap  single drawImage
       displayCtx.drawImage(
         this.canvas,
         0, readStart, this.width, rowsToDraw,        // source rect
         xOffset, displayHeight - rowsToDraw, this.width, rowsToDraw  // dest rect (bottom-aligned)
       );
     } else {
-      // Wrap — two drawImage calls
+      // Wrap  two drawImage calls
       const firstChunk = BUFFER_HEIGHT - readStart; // rows from readStart to end of buffer
       const secondChunk = rowsToDraw - firstChunk;  // remaining rows from start of buffer
 

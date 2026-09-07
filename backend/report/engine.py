@@ -1,4 +1,4 @@
-"""Report generation — JSON + CSV (apiendpoints.md section 6).
+"""Report generation  JSON + CSV (apiendpoints.md section 6).
 
 method_notes is generated here, not templated in the UI. It is where the project's
 honesty lives (apiendpoints.md section 6) - every note reflects an actual choice made
@@ -28,13 +28,13 @@ def _method_notes(s: Survey) -> list[str]:
     ]
     if s.meta:
         if s.meta.altitude_source == "blank_zone_estimate":
-            notes.insert(1, "Altitude estimated from the water column — positions carry "
+            notes.insert(1, "Altitude estimated from the water column  positions carry "
                             "higher uncertainty.")
         else:
             notes.insert(1, "Altitude read from XTF header.")
         notes.extend(s.meta.warnings)
     if not s.detections:
-        notes.append("No detections yet — detection model not run for this survey.")
+        notes.append("No detections yet  detection model not run for this survey.")
     return notes
 
 

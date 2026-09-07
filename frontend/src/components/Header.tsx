@@ -1,4 +1,4 @@
-// Header — Top bar: logo, filename, export button
+// Header  Top bar: logo, filename, export button
 
 import { useSurveyStore } from '../stores/surveyStore';
 

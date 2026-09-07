@@ -60,7 +60,7 @@ export function Dashboard() {
   return (
     <PageContainer
       title="Operations Dashboard"
-      description="Fleet-wide view of every survey processed by the console — coverage, targets, and how tight the position fixes are."
+      description="Fleet-wide view of every survey processed by the console  coverage, targets, and how tight the position fixes are."
       actions={
         <Button asChild size="sm">
           <Link to="/surveys">
@@ -184,7 +184,7 @@ export function Dashboard() {
             <ClassBadge key={c} cls={c} />
           ))}
           <span className="ml-1">
-            Natural bottom objects are shown, not hidden — calling a rock a rock is part of the
+            Natural bottom objects are shown, not hidden  calling a rock a rock is part of the
             method.
           </span>
         </div>

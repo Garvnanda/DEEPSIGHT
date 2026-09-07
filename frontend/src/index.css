@@ -5,7 +5,7 @@
    The waterfall is the brightest thing on screen. Everything else is quiet. */
 
 :root {
-  /* Palette — deep petrol blue-green, marine instrument aesthetic */
+  /* Palette  deep petrol blue-green, marine instrument aesthetic */
   --hull-deep: #0E1A1E;
   --hull: #16262C;
   --hull-raised: #1E333B;
@@ -80,7 +80,7 @@ html, body, #root {
   color: var(--text-quiet);
 }
 
-/* Scale: 12 / 14 / 16 / 20 / 28 — that's all we need */
+/* Scale: 12 / 14 / 16 / 20 / 28  that's all we need */
 
 /* === Focus === */
 /* Visible keyboard focus on all interactive elements */

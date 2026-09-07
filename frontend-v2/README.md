@@ -1,7 +1,7 @@
-# Deep-Sight — Console (v2)
+# Deep-Sight  Console (v2)
 
 Redesigned front end for the Deep-Sight sonar review backend. Multi-page,
-formal/professional, animated, light + dark (default light). Fully offline —
+formal/professional, animated, light + dark (default light). Fully offline 
 no CDN calls at runtime (fonts bundled, map has no basemap tiles).
 
 ## Stack
@@ -12,7 +12,7 @@ no CDN calls at runtime (fonts bundled, map has no basemap tiles).
 - react-router-dom (multi-page)
 - Zustand (survey / playback / selection stores)
 - Recharts (dashboard charts)
-- Leaflet + react-leaflet (track map, **no tile layer** — graticule + track + metre-accurate error circles)
+- Leaflet + react-leaflet (track map, **no tile layer**  graticule + track + metre-accurate error circles)
 - `@fontsource` Inter + JetBrains Mono (bundled, offline)
 
 ## Run
@@ -37,9 +37,9 @@ npm run preview
 
 | Route | What |
 |---|---|
-| `/` | Dashboard — fleet KPIs, targets-by-class, error-radius spread, recent surveys |
+| `/` | Dashboard  fleet KPIs, targets-by-class, error-radius spread, recent surveys |
 | `/surveys` | Table of all surveys; upload XTF, upload images, demo survey, re-run detection |
-| `/surveys/:id` | Console — waterfall + live playback (WebSocket), track map, worklist, error-budget detail |
+| `/surveys/:id` | Console  waterfall + live playback (WebSocket), track map, worklist, error-budget detail |
 | `/detections` | Cross-survey detection browser with filters + error-budget drawer |
 | `/reports` | Per-survey report: coverage, method notes (verbatim), targets, JSON/CSV export |
 | `/settings` | API base URL, theme, how to read the numbers |

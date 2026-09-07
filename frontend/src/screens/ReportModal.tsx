@@ -1,4 +1,4 @@
-// ReportModal — Report preview overlay with method_notes rendered in FULL.
+// ReportModal  Report preview overlay with method_notes rendered in FULL.
 // Downloads via JSON blob or CSV link.
 
 import { useEffect, useState } from 'react';
@@ -77,12 +77,12 @@ export function ReportModal({ surveyId, onClose }: ReportModalProps) {
               </div>
             </div>
 
-            {/* Stats headline — verbatim */}
+            {/* Stats headline  verbatim */}
             <div className="stats-headline" style={{ borderRadius: 4, border: '1px solid #2C4650' }}>
               {report.stats.headline}
             </div>
 
-            {/* Method notes — rendered IN FULL. Not collapsible. Not behind "show more".
+            {/* Method notes  rendered IN FULL. Not collapsible. Not behind "show more".
                 This is where our honesty lives. */}
             <div>
               <h3 style={{ fontSize: 14, fontWeight: 500, marginBottom: 8 }}>

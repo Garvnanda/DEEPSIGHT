@@ -1,4 +1,4 @@
-// Waterfall Colour Ramp — Pre-computed 256-entry lookup tables.
+// Waterfall Colour Ramp  Pre-computed 256-entry lookup tables.
 // Maps greyscale byte value (0–255) → packed RGBA as Uint32.
 // The amber ramp matches real survey software warm tones.
 

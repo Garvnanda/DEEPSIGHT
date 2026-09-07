@@ -1,4 +1,4 @@
-// Waterfall colour ramps — 256-entry Uint32 LUTs (packed little-endian RGBA / ABGR).
+// Waterfall colour ramps  256-entry Uint32 LUTs (packed little-endian RGBA / ABGR).
 // `amber` is the default sonar look; `ice` is a cool grey-blue for the geo-corrected view.
 
 function lerp(a: number, b: number, t: number) {

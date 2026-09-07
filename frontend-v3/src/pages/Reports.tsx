@@ -4,24 +4,25 @@ import { useSearchParams } from 'react-router-dom'
 
 import { ClassBadge } from '@/components/common/ClassBadge'
 import { EmptyState } from '@/components/common/EmptyState'
+import { MetricCard } from '@/components/common/MetricCard'
+import { Panel } from '@/components/common/Panel'
 import { PageContainer } from '@/components/PageContainer'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from '@/components/ui/table'
 import { useAsync } from '@/hooks/useAsync'
 import { getReportJson, reportCsvUrl } from '@/lib/api'
@@ -64,8 +65,10 @@ export function Reports() {
 
   return (
     <PageContainer
+      kicker="Record"
       title="Reports"
-      description="The full record for one survey — coverage, every target, and the method notes that say how each number was produced."
+      meta={data ? `${num(data.detections.length)} targets` : undefined}
+      description="The full record for one survey  coverage, every target, and the method notes that say how each number was produced."
       actions={
         <div className="flex items-center gap-2">
           <Select value={selected} onValueChange={(v) => setParams({ survey: v })}>
@@ -108,11 +111,8 @@ export function Reports() {
         </div>
       ) : (
         <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">{data.survey.filename}</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3 lg:grid-cols-4">
+          <Panel title="Survey header" right={<span className="tnum text-xs">{data.survey.filename}</span>}>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3 lg:grid-cols-4">
               <Field k="Frequency" v={`${num(data.survey.frequency_khz)} kHz`} />
               <Field k="Range" v={metres(data.survey.range_m)} />
               <Field k="Pings" v={num(data.survey.ping_count)} />
@@ -126,44 +126,34 @@ export function Reports() {
               />
               <Field k="Start" v={dateTime(data.survey.start_time)} />
               <Field k="Generated" v={dateTime(data.generated_at)} />
-            </CardContent>
-          </Card>
+            </div>
+          </Panel>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Kpi k="Area surveyed" v={areaKm2(data.stats.area_surveyed_m2)} />
-            <Kpi k="Track length" v={km(data.stats.line_length_km)} />
-            <Kpi k="Targets" v={num(data.stats.targets_flagged)} />
-            <Kpi k="Mean radius" v={metres(data.stats.mean_error_radius_m)} />
+            <MetricCard index={0} label="Area surveyed" value={areaKm2(data.stats.area_surveyed_m2)} />
+            <MetricCard index={1} label="Track length" value={km(data.stats.line_length_km)} />
+            <MetricCard index={2} label="Targets" value={num(data.stats.targets_flagged)} />
+            <MetricCard index={3} label="Mean radius" value={metres(data.stats.mean_error_radius_m)} />
           </div>
 
-          <Card className="border-accent/30 bg-accent/5">
-            <CardContent className="py-4 text-sm">{data.stats.headline}</CardContent>
-          </Card>
+          <div className="panel-marks rounded-xl border border-accent/35 bg-accent/5 px-4 py-3.5 text-sm">
+            {data.stats.headline}
+          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Method notes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                {data.method_notes.map((n, i) => (
-                  <li key={i} className="flex gap-2">
-                    <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
-                    {n}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+          <Panel title="Method notes">
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              {data.method_notes.map((n, i) => (
+                <li key={i} className="flex gap-2.5">
+                  <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
+                  {n}
+                </li>
+              ))}
+            </ul>
+          </Panel>
 
-          <Card className="overflow-hidden p-0">
-            <CardHeader className="p-4">
-              <CardTitle className="text-sm">Targets ({data.detections.length})</CardTitle>
-            </CardHeader>
+          <Panel title="Targets" right={<span className="tnum text-xs">{num(data.detections.length)}</span>} flush>
             {data.detections.length === 0 ? (
-              <div className="px-4 pb-4 text-sm text-muted-foreground">
-                No targets in this survey.
-              </div>
+              <div className="p-4 text-sm text-muted-foreground">No targets in this survey.</div>
             ) : (
               <Table>
                 <TableHeader>
@@ -186,10 +176,10 @@ export function Reports() {
                         {num(d.ping)}
                       </TableCell>
                       <TableCell className="tnum text-right text-muted-foreground">
-                        {d.lat == null ? '—' : coord(d.lat)}
+                        {d.lat == null ? '' : coord(d.lat)}
                       </TableCell>
                       <TableCell className="tnum text-right text-muted-foreground">
-                        {d.lon == null ? '—' : coord(d.lon)}
+                        {d.lon == null ? '' : coord(d.lon)}
                       </TableCell>
                       <TableCell className="tnum text-right" style={{ color: 'var(--warn)' }}>
                         {metres(d.error_radius_m)}
@@ -202,11 +192,11 @@ export function Reports() {
                 </TableBody>
               </Table>
             )}
-          </Card>
+          </Panel>
 
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Download className="size-3" /> Review area is {pct(data.stats.review_area_fraction)} of the
-            full swath — the rest does not need a diver.
+            full swath  the rest does not need a diver.
           </p>
         </div>
       )}
@@ -217,17 +207,8 @@ export function Reports() {
 function Field({ k, v }: { k: string; v: string }) {
   return (
     <div>
-      <div className="text-xs text-muted-foreground">{k}</div>
-      <div className="tnum">{v}</div>
+      <div className="label-micro">{k}</div>
+      <div className="tnum mt-1">{v}</div>
     </div>
-  )
-}
-
-function Kpi({ k, v }: { k: string; v: string }) {
-  return (
-    <Card className="gap-1 p-3">
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">{k}</div>
-      <div className="tnum text-lg font-semibold">{v}</div>
-    </Card>
   )
 }

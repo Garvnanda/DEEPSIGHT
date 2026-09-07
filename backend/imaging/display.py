@@ -1,4 +1,4 @@
-"""Display chain — gain normalise, contrast, resample -> u8 rows (implementation_garv.md section 4.1).
+"""Display chain  gain normalise, contrast, resample -> u8 rows (implementation_garv.md section 4.1).
 
 Signal processing only, no model. Order matters and is fixed:
   stack -> log -> windowed TVG -> percentile clip -> (square-pixel resample) -> u8

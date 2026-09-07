@@ -12,7 +12,7 @@ const LINKS = [
   { to: '/surveys', label: 'Surveys', end: false },
   { to: '/detections', label: 'Detections', end: false },
   { to: '/reports', label: 'Reports', end: false },
-  { to: '/settings', label: 'Settings', end: false },
+  { to: '/about', label: 'About', end: false },
 ]
 
 function Links({ onNavigate, orientation = 'row' }: { onNavigate?: () => void; orientation?: 'row' | 'col' }) {

@@ -1,5 +1,5 @@
 /* Guided-tour visuals: a CSS-only dimensioned wireframe box and a map ping pulse.
-   No WebGL, no library — nothing here blocks first paint. */
+   No WebGL, no library  nothing here blocks first paint. */
 
 .cuboid-scene {
   perspective: 900px;

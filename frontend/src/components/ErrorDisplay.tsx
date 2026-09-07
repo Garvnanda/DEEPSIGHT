@@ -1,4 +1,4 @@
-// ErrorDisplay — Maps API error codes to user-facing messages.
+// ErrorDisplay  Maps API error codes to user-facing messages.
 // Shows what happened and how to fix it. Never vague. Never apologetic.
 
 import { ApiError } from '../api/client';
@@ -26,7 +26,7 @@ export function ErrorDisplay({ error, onRetry, onTryAnother }: ErrorDisplayProps
         showTryAnother = true;
         break;
       case 'NOT_READY':
-        message = 'Still parsing — this takes about a minute.';
+        message = 'Still parsing  this takes about a minute.';
         break;
       case 'PROCESSING_FAILED':
         message = error.message;

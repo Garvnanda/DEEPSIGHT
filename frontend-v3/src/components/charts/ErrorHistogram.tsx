@@ -4,7 +4,7 @@ import { useResolvedColors } from '@/lib/colors'
 import type { Detection } from '@/lib/types'
 
 /** Histogram of per-target error radius. The point of the whole project is that this
- *  varies target to target — showing the spread makes that concrete. */
+ *  varies target to target  showing the spread makes that concrete. */
 export function ErrorHistogram({ detections }: { detections: Detection[] }) {
   const c = useResolvedColors()
   const radii = detections.map((d) => d.error_radius_m).filter((r) => Number.isFinite(r))

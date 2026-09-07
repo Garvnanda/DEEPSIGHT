@@ -1,9 +1,9 @@
-// App — Root component. Routes between Upload and Console screens.
-// No react-router — just state-driven: if we have a loaded survey, show console.
+// App  Root component. Routes between Upload and Console screens.
+// No react-router  just state-driven: if we have a loaded survey, show console.
 
-import { useSurveyStore } from './stores/surveyStore';
-import { UploadScreen } from './screens/UploadScreen';
 import { ConsoleScreen } from './screens/ConsoleScreen';
+import { UploadScreen } from './screens/UploadScreen';
+import { useSurveyStore } from './stores/surveyStore';
 
 function App() {
   const currentSurvey = useSurveyStore((s) => s.currentSurvey);

@@ -1,4 +1,4 @@
-// Worklist — Sorted target list with cross-view selection.
+// Worklist  Sorted target list with cross-view selection.
 // Confidence DESC, then error_radius ASC. nombo de-emphasised but visible.
 
 

@@ -1,4 +1,4 @@
-# Deep-Sight — API Contract
+# Deep-Sight  API Contract
 
 **This file is frozen.** It is the only agreement between `/backend` and `/frontend`.
 
@@ -92,7 +92,7 @@ Everything the UI needs to set up the view before playback starts.
 }
 ```
 
-- `altitude_source` is `"xtf_header"` or `"blank_zone_estimate"`. **P must surface this in the UI** — it
+- `altitude_source` is `"xtf_header"` or `"blank_zone_estimate"`. **P must surface this in the UI**  it
   changes how much to trust every error radius in the survey. See §8.
 - `warnings` is a possibly-empty array of plain-English strings. Render them; don't hide them.
 
@@ -109,7 +109,7 @@ The store is in-memory, so this frees the RAM at once and the id stops resolving
 ---
 
 ### `POST /api/surveys/{survey_id}/process`
-Kick off detection over the whole survey (headless — separate from live playback).
+Kick off detection over the whole survey (headless  separate from live playback).
 
 Response `202`:
 ```json
@@ -136,7 +136,7 @@ Poll during processing. Cheap; safe to hit every 1s.
 
 ---
 
-## 2 · Live playback — WebSocket
+## 2 · Live playback  WebSocket
 
 ### `WS /ws/surveys/{survey_id}/playback`
 
@@ -147,8 +147,8 @@ their arrival so it looks like the survey is replaying live.
 ```json
 { "type": "start", "start_ping": 0, "speed": 1.0, "batch_size": 32 }
 ```
-- `speed` — playback multiplier. `1.0` = real time. Demo will run `4.0`–`8.0`.
-- `batch_size` — pings per message. 32 is the default; keeps message rate sane.
+- `speed`  playback multiplier. `1.0` = real time. Demo will run `4.0`–`8.0`.
+- `batch_size`  pings per message. 32 is the default; keeps message rate sane.
 
 **Client → server, control messages (any time):**
 ```json
@@ -160,9 +160,9 @@ their arrival so it looks like the survey is replaying live.
 ```
 
 **Server → client messages.** Every message has a `type`. P should switch on it and ignore unknown types
-rather than erroring — that keeps the frontend forward-compatible if we add one.
+rather than erroring  that keeps the frontend forward-compatible if we add one.
 
-**`ping_batch`** — the waterfall data.
+**`ping_batch`**  the waterfall data.
 ```json
 {
   "type": "ping_batch",
@@ -178,28 +178,28 @@ rather than erroring — that keeps the frontend forward-compatible if we add on
 ```
 - `rows` is `count × width` 8-bit greyscale values, row-major, base64-encoded. Decode to a
   `Uint8ClampedArray` and blit straight into an ImageData. **Already gain-normalised and contrast-mapped
-  by the backend** — P does no signal processing, only colour mapping and scrolling.
+  by the backend**  P does no signal processing, only colour mapping and scrolling.
 - `width` is the resampled across-track width in **square ground pixels**, port on the left, starboard on
   the right, nadir at `width / 2`. It is constant for a whole survey.
 - `nav` has one entry per ping in the batch, in order, for drawing the track. Fields may be `null` if the
-  header lacked them — P must handle nulls by skipping that track vertex, not by drawing at 0,0.
+  header lacked them  P must handle nulls by skipping that track vertex, not by drawing at 0,0.
 
-**`detection`** — a target was found in pings already sent.
+**`detection`**  a target was found in pings already sent.
 ```json
 { "type": "detection", "detection": { /* full Detection object, see §3 */ } }
 ```
 
-**`status`** — progress and non-fatal notices.
+**`status`**  progress and non-fatal notices.
 ```json
 { "type": "status", "ping": 12800, "progress": 0.31, "message": null }
 ```
 
-**`done`** — end of survey reached.
+**`done`**  end of survey reached.
 ```json
 { "type": "done", "total_pings": 41208, "total_detections": 8 }
 ```
 
-**`error`** — fatal; server will close the socket after sending this.
+**`error`**  fatal; server will close the socket after sending this.
 ```json
 { "type": "error", "code": "PARSE_FAILED", "message": "Malformed ping header at 18402" }
 ```
@@ -244,16 +244,16 @@ Used identically in the WebSocket `detection` message, the list endpoint, and th
 | `class` | `class_display` | What it is |
 |---|---|---|
 | `wreck` | Wreck | Shipwreck or large structural debris |
-| `milco` | Rigid man-made object | Mine-like contact — a compact, hard, manufactured object |
+| `milco` | Rigid man-made object | Mine-like contact  a compact, hard, manufactured object |
 | `nombo` | Natural bottom object | A rock or natural feature that resembles a target. **Shown, not hidden** |
 | `pipeline` | Pipeline | Linear engineered structure |
 
-P renders `class_display`, never the raw code — but the raw code stays visible in the detail panel and in
+P renders `class_display`, never the raw code  but the raw code stays visible in the detail panel and in
 the exported report, because provenance is part of the pitch.
 
 > **`nombo` is not a false positive we failed to remove.** It's a class we deliberately trained on so the
 > model can tell rocks from targets. In the worklist it should be visually de-emphasised (muted, lower in
-> the sort order) but never dropped — being able to say "we detected the rock and correctly called it a
+> the sort order) but never dropped  being able to say "we detected the rock and correctly called it a
 > rock" is a differentiator.
 
 **`bbox_px`** is in raw waterfall pixel space: `x` across-track (0 to `width`), `y` = absolute ping index.
@@ -282,7 +282,7 @@ Query params (all optional): `class`, `min_confidence`, `sort` (`confidence` | `
 ---
 
 ### `GET /api/detections/{detection_id}`
-One detection, plus the full error budget breakdown. **This endpoint is a differentiator — the detail
+One detection, plus the full error budget breakdown. **This endpoint is a differentiator  the detail
 panel built on it is the answer to "how did you get that coordinate?"**
 
 ```json
@@ -300,7 +300,7 @@ panel built on it is the answer to "how did you get that coordinate?"**
       { "source": "target_extent",   "label": "Object size",          "value_m": 5.6,  "kind": "systematic" }
     ],
     "dominant_term": "layback",
-    "explanation": "Long cable-out on a turning line — layback dominates this position."
+    "explanation": "Long cable-out on a turning line  layback dominates this position."
   },
   "geometry": {
     "slant_range_m": 57.2,
@@ -332,7 +332,7 @@ GeoJSON LineString for the map. Decimated server-side to ≤ 5,000 points.
 }
 ```
 
-Coordinates are `[lon, lat]` — GeoJSON order, not lat/lon. Easy mistake; don't make it.
+Coordinates are `[lon, lat]`  GeoJSON order, not lat/lon. Easy mistake; don't make it.
 
 ---
 
@@ -341,7 +341,7 @@ Coordinates are `[lon, lat]` — GeoJSON order, not lat/lon. Easy mistake; don't
 ### `GET /api/surveys/{survey_id}/waterfall`
 Query: `start_ping` (required), `count` (required, ≤ 2048), `corrected` (`true` | `false`, default `false`).
 
-Returns `image/png` — a greyscale strip, `count` rows tall, `width` px wide.
+Returns `image/png`  a greyscale strip, `count` rows tall, `width` px wide.
 
 Two uses:
 1. **Scrubbing.** When the operator drags the timeline, fetch the strip directly instead of replaying.
@@ -412,7 +412,7 @@ These aren't style preferences; each one is a correctness or credibility issue.
 2. **Circles, not pins.** Every detection on the map is a circle whose radius is `error_radius_m` at the
    map's current scale. Pins imply precision we don't have and throw away our best differentiator.
 3. **Surface `altitude_source`.** When it is `blank_zone_estimate`, show a persistent notice on the survey:
-   *"Altitude estimated from water column — positions carry higher uncertainty."*
+   *"Altitude estimated from water column  positions carry higher uncertainty."*
 4. **Never claim calibration.** Label confidence as "detector score", not "probability" or "certainty".
 5. **`nombo` stays visible.** De-emphasise, never filter out by default.
 6. **Render `warnings`, `flags` and `method_notes`.** They are the product, not clutter.
@@ -430,7 +430,7 @@ Every failing request returns this shape with an appropriate HTTP status:
 {
   "error": {
     "code": "PARSE_FAILED",
-    "message": "Could not read ping headers — file may not be a valid XTF.",
+    "message": "Could not read ping headers  file may not be a valid XTF.",
     "detail": "Unexpected magic number at offset 0x00",
     "survey_id": "svy_7f3a91"
   }
@@ -443,7 +443,7 @@ Codes P should handle explicitly:
 |---|---|---|
 | `SURVEY_NOT_FOUND` | 404 | "That survey no longer exists." |
 | `PARSE_FAILED` | 422 | The `message`, plus a prompt to try another file |
-| `NOT_READY` | 409 | "Still parsing — this takes about a minute." |
+| `NOT_READY` | 409 | "Still parsing  this takes about a minute." |
 | `PROCESSING_FAILED` | 500 | The `message`, plus a retry button |
 | `FILE_TOO_LARGE` | 413 | "That file is over the 500 MB limit." |
 

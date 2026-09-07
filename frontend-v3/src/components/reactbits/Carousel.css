@@ -1,0 +1,70 @@
+.rb-carousel-container {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 16px;
+  background: var(--card);
+}
+.rb-carousel-track {
+  display: flex;
+}
+.rb-carousel-item {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 190px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  padding: 20px;
+  overflow: hidden;
+  cursor: grab;
+}
+.rb-carousel-item:active {
+  cursor: grabbing;
+}
+.rb-carousel-icon {
+  display: flex;
+  height: 34px;
+  width: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+.rb-carousel-title {
+  font-weight: 700;
+  font-size: 15px;
+}
+.rb-carousel-desc {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+.rb-carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+.rb-carousel-dot {
+  height: 7px;
+  width: 7px;
+  border: none;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background: var(--border);
+  transition: background 150ms, width 150ms;
+}
+.rb-carousel-dot.active {
+  background: var(--accent);
+  width: 18px;
+  border-radius: 4px;
+}

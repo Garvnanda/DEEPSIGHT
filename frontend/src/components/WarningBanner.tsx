@@ -1,4 +1,4 @@
-// WarningBanner — Persistent, non-dismissible warnings.
+// WarningBanner  Persistent, non-dismissible warnings.
 // Shows altitude_source notice and any warnings[] from the survey.
 
 import { useSurveyStore } from '../stores/surveyStore';
@@ -9,10 +9,10 @@ export function WarningBanner() {
 
   const notices: string[] = [];
 
-  // Altitude source warning — critical honesty requirement
+  // Altitude source warning  critical honesty requirement
   if (survey.altitude_source === 'blank_zone_estimate') {
     notices.push(
-      'Altitude estimated from water column — positions carry higher uncertainty.'
+      'Altitude estimated from water column  positions carry higher uncertainty.'
     );
   }
 

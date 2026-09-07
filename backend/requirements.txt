@@ -1,4 +1,4 @@
-# Deep-Sight backend — Python 3.11
+# Deep-Sight backend  Python 3.11
 # Unpinned to match implementation_garv.md section 1. Pin later if reproducibility bites.
 
 # API + serving
@@ -7,7 +7,7 @@ uvicorn[standard]
 python-multipart
 pydantic
 
-# XTF parsing + geodesy (parse/project only — geometry is our code)
+# XTF parsing + geodesy (parse/project only  geometry is our code)
 pyxtf
 pyproj
 

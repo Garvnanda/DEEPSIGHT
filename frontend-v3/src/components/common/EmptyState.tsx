@@ -12,15 +12,18 @@ export function EmptyState({ icon, title, description, action, className }: Prop
   return (
     <div
       className={cn(
-        'grid place-items-center rounded-lg border border-dashed px-6 py-14 text-center',
+        'relative grid place-items-center overflow-hidden rounded-xl border border-dashed px-6 py-16 text-center',
         className,
       )}
     >
-      <div className="max-w-sm">
-        {icon && <div className="mx-auto mb-3 text-muted-foreground">{icon}</div>}
+      <div className="pointer-events-none absolute inset-0 grid-field opacity-50" aria-hidden />
+      <div className="relative max-w-sm">
+        {icon && <div className="mx-auto mb-3 text-accent/70">{icon}</div>}
         <p className="text-sm font-medium">{title}</p>
-        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
-        {action && <div className="mt-4">{action}</div>}
+        {description && (
+          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{description}</p>
+        )}
+        {action && <div className="mt-5">{action}</div>}
       </div>
     </div>
   )

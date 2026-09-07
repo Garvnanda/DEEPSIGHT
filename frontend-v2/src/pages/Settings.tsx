@@ -11,7 +11,7 @@ import { useThemeStore } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 
 const METHOD_NOTES = [
-  'Positions are WGS-84. The error radius is a 1-sigma search radius — the circle you would actually have to sweep to find the object.',
+  'Positions are WGS-84. The error radius is a 1-sigma search radius  the circle you would actually have to sweep to find the object.',
   'Every radius is built from its own error budget: GPS fix, layback, heading, altitude, sound speed and the target’s own size. It varies target to target by design.',
   'Confidence is a raw detector score. It is not a calibrated probability.',
   'Natural bottom objects (rocks that look like targets) are detected and labelled, not hidden.',
@@ -132,7 +132,7 @@ export function Settings() {
             ))}
           </ul>
           <p className="mt-4 text-xs text-muted-foreground">
-            Deep-Sight — side-scan sonar review console. XTF ingest, waterfall rendering, YOLO
+            Deep-Sight  side-scan sonar review console. XTF ingest, waterfall rendering, YOLO
             detection, geodetic target location with a per-target error budget.
           </p>
         </CardContent>

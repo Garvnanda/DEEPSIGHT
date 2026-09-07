@@ -1,5 +1,5 @@
 // Deep-Sight API Types
-// Hand-typed from docs/apiendpoints.md — the frozen contract.
+// Hand-typed from docs/apiendpoints.md  the frozen contract.
 // This file mirrors the contract EXACTLY. Do not add fields that aren't in the contract.
 
 // === Enums & Unions ===
@@ -177,7 +177,7 @@ export interface SurveyStats {
   targets_by_class: Record<DetectionClass, number>;
   review_area_fraction: number;
   mean_error_radius_m: number;
-  headline: string; // Pre-formatted by backend — render verbatim
+  headline: string; // Pre-formatted by backend  render verbatim
 }
 
 // === Report (GET /api/surveys/{id}/report.json) ===
@@ -266,8 +266,8 @@ export interface ApiErrorResponse {
 }
 
 // Error codes P handles explicitly:
-// SURVEY_NOT_FOUND (404) — "That survey no longer exists."
-// PARSE_FAILED (422) — show message + "Try another file"
-// NOT_READY (409) — "Still parsing — this takes about a minute."
-// PROCESSING_FAILED (500) — show message + retry button
-// FILE_TOO_LARGE (413) — "That file is over the 500 MB limit."
+// SURVEY_NOT_FOUND (404)  "That survey no longer exists."
+// PARSE_FAILED (422)  show message + "Try another file"
+// NOT_READY (409)  "Still parsing  this takes about a minute."
+// PROCESSING_FAILED (500)  show message + retry button
+// FILE_TOO_LARGE (413)  "That file is over the 500 MB limit."

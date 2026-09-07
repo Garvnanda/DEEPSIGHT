@@ -2,8 +2,8 @@
 // them into the same row queue the socket uses. Slower and quieter, but the demo never
 // shows an empty screen (implementation_P.md section 4.4).
 
-import { getWaterfallTile } from './api'
-import type { PingBatch } from './playbackSocket'
+import { getWaterfallTile } from './api';
+import type { PingBatch } from './playbackSocket';
 
 /** Decode a greyscale PNG blob to (rows x width) 8-bit values, row-major. */
 async function decodePngToGray(blob: Blob): Promise<{ data: Uint8Array; width: number; height: number }> {
@@ -25,7 +25,7 @@ export interface TilePoller {
 }
 
 /** Start polling tiles from `startPing` to `totalPings`. `onBatch` gets the same shape
- *  the socket emits (nav is empty — the tile endpoint carries no navigation). */
+ *  the socket emits (nav is empty  the tile endpoint carries no navigation). */
 export function startTilePolling(opts: {
   surveyId: string
   startPing: number
@@ -57,7 +57,7 @@ export function startTilePolling(opts: {
         cursor += count
       }
     } catch {
-      /* transient — try again next tick */
+      /* transient  try again next tick */
     } finally {
       inFlight = false
     }

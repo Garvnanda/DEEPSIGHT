@@ -2,10 +2,11 @@ import { ClassBadge } from '@/components/common/ClassBadge'
 import { FlagChips } from '@/components/common/FlagChips'
 import { TrackMap } from '@/components/console/TrackMap'
 import { Cuboid3D } from '@/components/tour/Cuboid3D'
+import { WorldMap } from '@/components/tour/WorldMap'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { DetectionDetailResponse } from '@/lib/types'
 import { coord, metres, num } from '@/lib/format'
+import type { DetectionDetailResponse } from '@/lib/types'
 import { ErrorBudgetBar } from './ErrorBudgetBar'
 
 export function DetectionDetail({
@@ -49,28 +50,33 @@ export function DetectionDetail({
       {/* the object, to scale */}
       <div className="rounded-lg border bg-card p-3">
         <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Object — measured dimensions
+          Object  measured dimensions
         </div>
         <Cuboid3D
           widthM={d.bbox_m_width}
           lengthM={d.bbox_m_height}
           heightM={d.object_height_m}
+          sceneHeight={190}
         />
       </div>
 
-      {/* where it is */}
+      {/* where it is  world locator, then the metre-scale search circle */}
       {d.lat != null && d.lon != null && (
-        <div className="overflow-hidden rounded-lg border">
-          <div className="h-44">
-            <TrackMap
-              bounds={mapBounds(d.lat, d.lon, d.error_radius_m)}
-              track={null}
-              vessel={null}
-              detections={[d]}
-              selectedId={d.detection_id}
-              onSelect={() => {}}
-            />
+        <div className="space-y-2">
+          <WorldMap lat={d.lat} lon={d.lon} inset={false} />
+          <div className="panel-marks overflow-hidden rounded-lg border">
+            <div className="h-44">
+              <TrackMap
+                bounds={mapBounds(d.lat, d.lon, d.error_radius_m)}
+                track={null}
+                vessel={null}
+                detections={[d]}
+                selectedId={d.detection_id}
+                onSelect={() => {}}
+              />
+            </div>
           </div>
+          <div className="label-micro text-right">search circle · {metres(d.error_radius_m)}</div>
         </div>
       )}
 

@@ -168,8 +168,11 @@ export function SurveyConsole() {
         </Button>
         <div className="min-w-0">
           <div className="truncate text-sm font-semibold">{s.filename}</div>
-          <div className="tnum text-xs text-muted-foreground">
-            {num(s.frequency_khz)} kHz · range {metres(s.range_m)} · {num(s.ping_count)} pings
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
+            <Readout k="freq" v={`${num(s.frequency_khz)} kHz`} />
+            <Readout k="range" v={metres(s.range_m)} />
+            <Readout k="pings" v={num(s.ping_count)} />
+            <Readout k="alt" v={metres(s.altitude_mean_m)} />
           </div>
         </div>
         <StatusBadge status={s.status} />
@@ -254,5 +257,15 @@ export function SurveyConsole() {
         onConfirm={onDelete}
       />
     </div>
+  )
+}
+
+/** One mono field on the console header rail: `freq 400 kHz`. */
+function Readout({ k, v }: { k: string; v: string }) {
+  return (
+    <span className="flex items-baseline gap-1">
+      <span className="label-micro">{k}</span>
+      <span className="tnum text-xs">{v}</span>
+    </span>
   )
 }

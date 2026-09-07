@@ -1,22 +1,22 @@
 // Deep-Sight API client. One function per REST endpoint, matching docs/apiendpoints.md.
 //
-// Base URL: empty by default — requests go to the same origin and the Vite dev server
+// Base URL: empty by default  requests go to the same origin and the Vite dev server
 // proxies /api, /ws and /health to the backend (keeps the demo single-origin and
 // offline-friendly). Settings can override it with an absolute URL for a remote backend.
 
 import type {
-  DetectionDetailResponse,
-  DetectionQueryParams,
-  DetectionsResponse,
-  ProcessResponse,
-  ReportResponse,
-  SurveyDetail,
-  SurveyListResponse,
-  SurveyStats,
-  SurveyStatusResponse,
-  SurveyUploadResponse,
-  TrackFeature,
-  ApiErrorResponse,
+    ApiErrorResponse,
+    DetectionDetailResponse,
+    DetectionQueryParams,
+    DetectionsResponse,
+    ProcessResponse,
+    ReportResponse,
+    SurveyDetail,
+    SurveyListResponse,
+    SurveyStats,
+    SurveyStatusResponse,
+    SurveyUploadResponse,
+    TrackFeature,
 } from './types'
 
 const BASE_KEY = 'deepsight.apiBase'
@@ -116,7 +116,7 @@ export function createDemoSurvey(): Promise<{ survey_id: string; filename: strin
   return req('/api/dev/demo-survey', { method: 'POST' })
 }
 
-/** XTF upload with progress (XHR — fetch has no upload progress). */
+/** XTF upload with progress (XHR  fetch has no upload progress). */
 export function uploadSurvey(file: File, onProgress: (pct: number) => void): Promise<SurveyUploadResponse> {
   return xhrUpload('/api/surveys', [['file', file]], onProgress)
 }

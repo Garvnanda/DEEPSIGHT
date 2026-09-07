@@ -1,4 +1,4 @@
-// TransportBar — Play/pause/seek/speed controls + raw/corrected toggle.
+// TransportBar  Play/pause/seek/speed controls + raw/corrected toggle.
 // Bottom bar of the console layout.
 
 import { usePlaybackStore } from '../stores/playbackStore';

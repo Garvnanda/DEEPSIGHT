@@ -1,41 +1,31 @@
 // Deep-Sight API client. One function per REST endpoint, matching docs/apiendpoints.md.
 //
-// Base URL: empty by default — requests go to the same origin and the Vite dev server
+// Base URL: empty by default  requests go to the same origin and the Vite dev server
 // proxies /api, /ws and /health to the backend (keeps the demo single-origin and
-// offline-friendly). Settings can override it with an absolute URL for a remote backend.
+// offline-friendly). Set VITE_API_BASE at build time to point at a remote backend.
 
 import type {
-  DetectionDetailResponse,
-  DetectionQueryParams,
-  DetectionsResponse,
-  ProcessResponse,
-  ReportResponse,
-  SurveyDetail,
-  SurveyListResponse,
-  SurveyStats,
-  SurveyStatusResponse,
-  SurveyUploadResponse,
-  TrackFeature,
-  ApiErrorResponse,
+    ApiErrorResponse,
+    DetectionDetailResponse,
+    DetectionQueryParams,
+    DetectionsResponse,
+    ProcessResponse,
+    ReportResponse,
+    SurveyDetail,
+    SurveyListResponse,
+    SurveyStats,
+    SurveyStatusResponse,
+    SurveyUploadResponse,
+    TrackFeature,
 } from './types'
 
-const BASE_KEY = 'deepsight.apiBase'
+// Fixed at build time  see .env.example. Blank means same origin: the deployment serves
+// /api and /ws from whatever host serves the page (a reverse proxy or a platform rewrite).
+// Set VITE_API_BASE to an absolute URL when the backend lives somewhere else.
+const API_BASE = (import.meta.env.VITE_API_BASE ?? '').trim().replace(/\/+$/, '')
 
 export function getApiBase(): string {
-  try {
-    return localStorage.getItem(BASE_KEY)?.replace(/\/$/, '') ?? ''
-  } catch {
-    return ''
-  }
-}
-
-export function setApiBase(v: string): void {
-  try {
-    if (v) localStorage.setItem(BASE_KEY, v.replace(/\/$/, ''))
-    else localStorage.removeItem(BASE_KEY)
-  } catch {
-    /* ignore */
-  }
+  return API_BASE
 }
 
 export function wsUrl(path: string): string {
@@ -105,7 +95,7 @@ export function getSurvey(id: string): Promise<SurveyDetail> {
 }
 
 /** Delete a survey and everything derived from it. 204 on success; 404 (already gone)
- *  is treated as success. Irreversible — the caller must confirm first. */
+ *  is treated as success. Irreversible  the caller must confirm first. */
 export async function deleteSurvey(id: string): Promise<void> {
   let res: Response
   try {
@@ -133,7 +123,7 @@ export function createDemoSurvey(): Promise<{ survey_id: string; filename: strin
   return req('/api/dev/demo-survey', { method: 'POST' })
 }
 
-/** XTF upload with progress (XHR — fetch has no upload progress). */
+/** XTF upload with progress (XHR  fetch has no upload progress). */
 export function uploadSurvey(file: File, onProgress: (pct: number) => void): Promise<SurveyUploadResponse> {
   return xhrUpload('/api/surveys', [['file', file]], onProgress)
 }

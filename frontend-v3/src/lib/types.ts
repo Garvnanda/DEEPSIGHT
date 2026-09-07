@@ -1,4 +1,4 @@
-// Deep-Sight API types — hand-typed from docs/apiendpoints.md (the frozen contract).
+// Deep-Sight API types  hand-typed from docs/apiendpoints.md (the frozen contract).
 // Mirrors the contract EXACTLY. Do not add fields that aren't in the contract.
 
 export type SurveyStatus =

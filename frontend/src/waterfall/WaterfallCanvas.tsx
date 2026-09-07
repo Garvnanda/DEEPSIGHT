@@ -1,13 +1,13 @@
-// WaterfallCanvas — The heart of the demo.
+// WaterfallCanvas  The heart of the demo.
 // Renders sonar waterfall data from the ring buffer with instrument chrome.
 // Smooth scrolling via RAF drain loop. Letterboxed, never stretched.
 
-import { useRef, useEffect, useCallback } from 'react';
-import { RingBuffer } from './RingBuffer';
-import { amberLUT, greyLUT } from './colourRamp';
+import { useCallback, useEffect, useRef } from 'react';
 import { usePlaybackStore } from '../stores/playbackStore';
 import { useSelectionStore } from '../stores/selectionStore';
 import type { Detection } from '../types/api';
+import { RingBuffer } from './RingBuffer';
+import { amberLUT, greyLUT } from './colourRamp';
 
 // How many rows to drain per animation frame for smooth scrolling
 const ROWS_PER_FRAME = 4;
@@ -217,7 +217,7 @@ function drawChrome(
     }
   }
 
-  // Ping counter overlay — drawn by the component that has access to the store
+  // Ping counter overlay  drawn by the component that has access to the store
   // (handled separately via DOM overlay to avoid re-drawing text every frame)
   void displayWidth; // used for centering calculations
 }
@@ -251,7 +251,7 @@ function drawDetections(
     ctx.lineWidth = isSelected ? 2 : 1;
     ctx.strokeRect(screenX, screenY, boxW, boxH);
 
-    // Class label — small, outside the box so it doesn't obscure the target
+    // Class label  small, outside the box so it doesn't obscure the target
     ctx.font = '10px IBM Plex Sans';
     ctx.fillStyle = colour;
     ctx.textAlign = 'left';

@@ -1,11 +1,11 @@
-// StatsBar — Displays stats.headline verbatim.
+// StatsBar  Displays stats.headline verbatim.
 // The backend pre-formats the headline so the number on screen
 // and the number in the report can never disagree.
 
 import { useEffect, useState } from 'react';
-import { useSurveyStore } from '../stores/surveyStore';
-import { usePlaybackStore } from '../stores/playbackStore';
 import * as api from '../api/client';
+import { usePlaybackStore } from '../stores/playbackStore';
+import { useSurveyStore } from '../stores/surveyStore';
 import type { SurveyStats } from '../types/api';
 
 export function StatsBar() {
@@ -25,7 +25,7 @@ export function StatsBar() {
 
   return (
     <div className="stats-headline">
-      {/* Render verbatim — do not reformat */}
+      {/* Render verbatim  do not reformat */}
       {stats.headline}
     </div>
   );

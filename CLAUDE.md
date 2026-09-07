@@ -1,9 +1,9 @@
-# CLAUDE.md — Deep-Sight backend
+# CLAUDE.md  Deep-Sight backend
 
 Rules for any AI agent working in this repo. These are hard constraints, not
 preferences. Break one and you have made a mistake worth stopping to report.
 
-## 1 · No git writes — ever
+## 1 · No git writes  ever
 
 Never run any command that mutates git state or history:
 
@@ -16,7 +16,7 @@ Never run any command that mutates git state or history:
 Read-only git is fine: `git status`, `git log`, `git diff`, `git show`.
 
 Staging, committing, branching, and pushing are the user's job. Always. If work
-is at a point where a commit makes sense, say so and stop — do not do it.
+is at a point where a commit makes sense, say so and stop  do not do it.
 
 ## 2 · No autonomous design decisions
 

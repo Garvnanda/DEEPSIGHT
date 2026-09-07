@@ -1,4 +1,4 @@
-// Track map — Leaflet with NO basemap tiles (fully offline). A lat/lon graticule for
+// Track map  Leaflet with NO basemap tiles (fully offline). A lat/lon graticule for
 // orientation, the survey bounding box, the vessel track, the live position, and one
 // metre-accurate circle per detection sized by its error radius.
 

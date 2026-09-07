@@ -1,5 +1,5 @@
 // Theme: light (default) / dark, persisted to localStorage, applied as `.dark` on <html>.
-// No next-themes — one tiny store instead.
+// No next-themes  one tiny store instead.
 
 import { useEffect } from 'react'
 import { create } from 'zustand'

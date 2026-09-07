@@ -1,4 +1,4 @@
-// React Bits — ElasticSlider (controlled). Timeline scrubber with elastic overflow drag.
+// React Bits  ElasticSlider (controlled). Timeline scrubber with elastic overflow drag.
 import { animate, motion, useMotionValue, useMotionValueEvent, useTransform } from 'framer-motion'
 import { useRef, useState } from 'react'
 

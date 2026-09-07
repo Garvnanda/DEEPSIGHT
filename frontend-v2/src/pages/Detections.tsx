@@ -5,26 +5,26 @@ import { useSearchParams } from 'react-router-dom'
 import { ClassBadge, ClassDot } from '@/components/common/ClassBadge'
 import { EmptyState } from '@/components/common/EmptyState'
 import { FlagChips } from '@/components/common/FlagChips'
-import { PageContainer } from '@/components/PageContainer'
 import { DetectionDetail } from '@/components/detections/DetectionDetail'
+import { PageContainer } from '@/components/PageContainer'
 import { Card } from '@/components/ui/card'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Slider } from '@/components/ui/slider'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from '@/components/ui/table'
 import { useAsync } from '@/hooks/useAsync'
 import { getDetections } from '@/lib/api'
@@ -87,7 +87,7 @@ export function Detections() {
   return (
     <PageContainer
       title="Detections"
-      description="Every target the detector flagged, across surveys. Sorted tightest-circle first — those are the ones a team can act on."
+      description="Every target the detector flagged, across surveys. Sorted tightest-circle first  those are the ones a team can act on."
       actions={
         <Select value={survey} onValueChange={(v) => setParams(v === ALL ? {} : { survey: v })}>
           <SelectTrigger className="w-[260px]">
@@ -195,7 +195,7 @@ export function Detections() {
                     {num(d.ping)}
                   </TableCell>
                   <TableCell className="tnum text-right text-xs text-muted-foreground">
-                    {d.lat == null ? '—' : `${coord(d.lat)}, ${coord(d.lon)}`}
+                    {d.lat == null ? '' : `${coord(d.lat)}, ${coord(d.lon)}`}
                   </TableCell>
                   <TableCell className="tnum text-right" style={{ color: 'var(--warn)' }}>
                     {metres(d.error_radius_m)}

@@ -1,11 +1,11 @@
 import {
-  FlaskConical,
-  ImageUp,
-  MoreHorizontal,
-  RefreshCw,
-  Trash2,
-  Upload,
-  Waves,
+    FlaskConical,
+    ImageUp,
+    MoreHorizontal,
+    RefreshCw,
+    Trash2,
+    Upload,
+    Waves,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -13,25 +13,26 @@ import { toast } from 'sonner'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
+import { Panel } from '@/components/common/Panel'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { PageContainer } from '@/components/PageContainer'
+import { SpecularButton } from '@/components/reactbits/SpecularButton'
 import { UploadDialog } from '@/components/surveys/UploadDialog'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from '@/components/ui/table'
 import { ApiError, createDemoSurvey, deleteSurvey, processSurvey } from '@/lib/api'
 import { num, relativeTime } from '@/lib/format'
@@ -50,7 +51,7 @@ export function Surveys() {
   }, [refresh])
 
   const afterCreate = (id: string) => {
-    toast.success('Survey created — parsing and detection are running.')
+    toast.success('Survey created  parsing and detection are running.')
     void refresh()
     navigate(`/console/${id}`)
   }
@@ -98,7 +99,9 @@ export function Surveys() {
 
   return (
     <PageContainer
+      kicker="Library"
       title="Surveys"
+      meta={`${num(surveys.length)} file${surveys.length === 1 ? '' : 's'}`}
       description="Every uploaded XTF file and everything derived from it. Upload starts parsing and detection automatically."
       actions={
         <>
@@ -111,9 +114,9 @@ export function Surveys() {
           <Button size="sm" variant="outline" onClick={() => setDialog('image')}>
             <ImageUp className="size-4" /> Images
           </Button>
-          <Button size="sm" onClick={() => setDialog('xtf')}>
+          <SpecularButton size="sm" onClick={() => setDialog('xtf')}>
             <Upload className="size-4" /> Upload XTF
-          </Button>
+          </SpecularButton>
         </>
       }
     >
@@ -123,7 +126,7 @@ export function Surveys() {
         </div>
       )}
 
-      <Card className="overflow-hidden p-0">
+      <Panel title="Ingested files" right={<span className="label-micro">click a row to open</span>} flush>
         {loading && !surveys.length ? (
           <div className="space-y-px p-4">
             {[0, 1, 2, 3].map((i) => (
@@ -132,7 +135,7 @@ export function Surveys() {
           </div>
         ) : surveys.length === 0 ? (
           <EmptyState
-            className="border-0"
+            className="rounded-none border-0"
             icon={<Waves className="size-8" />}
             title="No surveys yet"
             description="Upload an XTF file, add side-scan images, or spin up a demo survey."
@@ -158,7 +161,7 @@ export function Surveys() {
               {surveys.map((s) => (
                 <TableRow
                   key={s.survey_id}
-                  className="cursor-pointer hover:bg-muted/50"
+                  className="cursor-pointer border-l-2 border-transparent transition-colors hover:border-accent hover:bg-accent/5"
                   onClick={() => navigate(`/console/${s.survey_id}`)}
                 >
                   <TableCell className="max-w-[360px] truncate font-medium">{s.filename}</TableCell>
@@ -208,7 +211,7 @@ export function Surveys() {
             </TableBody>
           </Table>
         )}
-      </Card>
+      </Panel>
 
       <UploadDialog
         mode="xtf"

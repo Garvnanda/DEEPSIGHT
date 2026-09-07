@@ -3,8 +3,8 @@
 pyxtf does the byte-level parse (implementation_garv.md: "pyxtf parses"). This module
 owns channel selection, the header summary, and the mid-file-change guard.
 
-This sonar (Benthos SIS-1625, recorded by Isis) writes 5 channels — PORT/STBD at two
-frequencies plus a sub-bottom channel — and pyxtf's stock reader indexes past its own
+This sonar (Benthos SIS-1625, recorded by Isis) writes 5 channels  PORT/STBD at two
+frequencies plus a sub-bottom channel  and pyxtf's stock reader indexes past its own
 filtered channel list and raises IndexError. `_patch_pyxtf_channels()` widens that
 filter to include the sub-bottom slot; applied once at import.
 """
@@ -33,7 +33,7 @@ AUV_NOMINAL_ALTITUDE_M = 12.0    # used when the header altitude is unusable AND
                                  # column has been removed (no blank zone to measure); AUV
                                  # side-scan flies ~10-15 m over the seabed. Flagged
                                  # blank_zone_estimate so every error radius widens.
-_TRIGGER_HZ_FALLBACK = 5.0       # readme.TXT: SSS trigger 5 Hz — used only if ping times are absent
+_TRIGGER_HZ_FALLBACK = 5.0       # readme.TXT: SSS trigger 5 Hz  used only if ping times are absent
 # channel centre frequency when the ping headers don't carry it (readme.TXT bands)
 _FREQ_KHZ_BY_NAME = (("LF", 105), ("HF", 410))
 

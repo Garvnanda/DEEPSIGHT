@@ -1,4 +1,4 @@
-// DetailPanel — The answer to "how did you get that coordinate?"
+// DetailPanel  The answer to "how did you get that coordinate?"
 // Error budget bar, geometry, flags, dimensions. All from GET /api/detections/{id}.
 
 import { useSelectionStore } from '../stores/selectionStore';
@@ -30,13 +30,13 @@ export function DetailPanel() {
 
   return (
     <div className="detail-panel">
-      {/* 1. Class header — class_display large + raw class code small */}
+      {/* 1. Class header  class_display large + raw class code small */}
       <div className="detail-class-header">
         <span className="detail-class-display">{det.class_display}</span>
         <span className="detail-class-code">{det.class}</span>
       </div>
 
-      {/* 2. Coordinate block — null renders as "unavailable", NEVER as 0 */}
+      {/* 2. Coordinate block  null renders as "unavailable", NEVER as 0 */}
       <div className="detail-coords">
         <div>
           <span style={{ color: '#7E9AA3', marginRight: 8 }}>Lat</span>
@@ -60,7 +60,7 @@ export function DetailPanel() {
         </div>
       </div>
 
-      {/* 3. Error budget bar — CSS flexbox, widths from terms */}
+      {/* 3. Error budget bar  CSS flexbox, widths from terms */}
       <div>
         <div className="error-budget-bar">
           {eb.terms.map((term, i) => {
@@ -83,7 +83,7 @@ export function DetailPanel() {
         </div>
       </div>
 
-      {/* 4. Explanation — rendered verbatim. Don't write our own. */}
+      {/* 4. Explanation  rendered verbatim. Don't write our own. */}
       <div className="error-budget-explanation">{eb.explanation}</div>
 
       {/* 5. Geometry section */}
@@ -120,7 +120,7 @@ export function DetailPanel() {
         )}
       </div>
 
-      {/* 7. Flags — small label chips explaining WHY the circle is large */}
+      {/* 7. Flags  small label chips explaining WHY the circle is large */}
       {det.flags.length > 0 && (
         <div className="flag-list">
           {det.flags.map((flag) => (
@@ -131,7 +131,7 @@ export function DetailPanel() {
         </div>
       )}
 
-      {/* 8. Confidence — "Detector score", NOT "probability" */}
+      {/* 8. Confidence  "Detector score", NOT "probability" */}
       <div style={{ fontSize: 12 }}>
         <span style={{ color: '#7E9AA3' }}>Detector score: </span>
         <span className="font-mono">{det.confidence.toFixed(2)}</span>

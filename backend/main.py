@@ -1,4 +1,4 @@
-"""Deep-Sight backend — FastAPI app, routes only (thin).
+"""Deep-Sight backend  FastAPI app, routes only (thin).
 
 Contract: docs/apiendpoints.md (frozen). Logic lives in backend.state / backend.report /
 backend.imaging. Geometry-dependent fields (per-detection coordinates, error budget) are
@@ -43,7 +43,7 @@ def _get(sid: str) -> state.Survey:
 
 def _need_ready(s: state.Survey) -> None:
     if s.status in ("uploaded", "parsing"):
-        raise ApiError("NOT_READY", 409, "Still parsing — this takes about a minute.",
+        raise ApiError("NOT_READY", 409, "Still parsing  this takes about a minute.",
                        survey_id=s.survey_id)
     if s.status == "failed":
         raise ApiError("PARSE_FAILED", 422, s.message or "Parse failed.",

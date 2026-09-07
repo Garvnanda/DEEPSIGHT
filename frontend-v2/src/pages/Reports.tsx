@@ -8,20 +8,20 @@ import { PageContainer } from '@/components/PageContainer'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from '@/components/ui/table'
 import { useAsync } from '@/hooks/useAsync'
 import { getReportJson, reportCsvUrl } from '@/lib/api'
@@ -65,7 +65,7 @@ export function Reports() {
   return (
     <PageContainer
       title="Reports"
-      description="The full record for one survey — coverage, every target, and the method notes that say how each number was produced."
+      description="The full record for one survey  coverage, every target, and the method notes that say how each number was produced."
       actions={
         <div className="flex items-center gap-2">
           <Select value={selected} onValueChange={(v) => setParams({ survey: v })}>
@@ -186,10 +186,10 @@ export function Reports() {
                         {num(d.ping)}
                       </TableCell>
                       <TableCell className="tnum text-right text-muted-foreground">
-                        {d.lat == null ? '—' : coord(d.lat)}
+                        {d.lat == null ? '' : coord(d.lat)}
                       </TableCell>
                       <TableCell className="tnum text-right text-muted-foreground">
-                        {d.lon == null ? '—' : coord(d.lon)}
+                        {d.lon == null ? '' : coord(d.lon)}
                       </TableCell>
                       <TableCell className="tnum text-right" style={{ color: 'var(--warn)' }}>
                         {metres(d.error_radius_m)}
@@ -206,7 +206,7 @@ export function Reports() {
 
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Download className="size-3" /> Review area is {pct(data.stats.review_area_fraction)} of the
-            full swath — the rest does not need a diver.
+            full swath  the rest does not need a diver.
           </p>
         </div>
       )}
