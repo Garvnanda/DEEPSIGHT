@@ -63,6 +63,9 @@ async def upload_survey(file: UploadFile, background: BackgroundTasks) -> dict:
         raise ApiError("FILE_TOO_LARGE", 413, "That file is over the 500 MB limit.")
     s = state.create_survey(file.filename or "survey.xtf", data)
     background.add_task(state.parse_survey, s.survey_id)
+    # the merged frontend never calls POST /process; chain detection so playback has
+    # targets. BackgroundTasks run in order, so this sees the parsed survey.
+    background.add_task(_run_detection, s.survey_id)
     return {"survey_id": s.survey_id, "filename": s.filename, "size_bytes": s.size_bytes,
             "status": s.status, "created_at": s.created_at}
 
@@ -114,7 +117,11 @@ def _run_detection(sid: str) -> None:
     s = state.SURVEYS.get(sid)
     if s is None:
         return
+    if s.status == "failed" or not s.pings:   # parse failed / nothing to run on
+        return
     try:
+        s.status = "processing"
+        s.message = "Running detection"
         s.detections = detect_survey(s)
         s.status = "complete"
         s.message = f"{len(s.detections)} detections"

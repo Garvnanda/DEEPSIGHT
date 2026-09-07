@@ -18,7 +18,8 @@ from backend.ingest.models import SurveyMeta
 from backend.ingest.xtf import read_survey
 
 UPLOAD_DIR = Path("data/uploads")
-MAX_BYTES = 500 * 1024 * 1024        # apiendpoints.md section 9 FILE_TOO_LARGE
+MAX_BYTES = 800 * 1024 * 1024        # apiendpoints.md section 9 FILE_TOO_LARGE
+# (raised from 500 MB: the GA0346 HF lines are 400-570 MB each)
 TRACK_MAX_POINTS = 5000              # apiendpoints.md section 4
 
 

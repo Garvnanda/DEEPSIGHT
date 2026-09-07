@@ -43,7 +43,8 @@ def report_json(s: Survey) -> dict:
         "survey": survey_detail(s),
         "generated_at": _now(),
         "stats": survey_stats(s),
-        "detections": s.detections,
+        "detections": [{k: v for k, v in d.items() if not k.startswith("_")}
+                       for d in s.detections],
         "method_notes": _method_notes(s),
     }
 

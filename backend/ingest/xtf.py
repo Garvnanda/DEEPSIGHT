@@ -16,12 +16,26 @@ from datetime import datetime, timezone
 import numpy as np
 import pyxtf
 import pyxtf.xtf_ctypes as _xc
+from pyproj import Transformer
 from pyxtf.xtf_ctypes import XTFChannelType, XTFFileHeader, XTFHeaderType
 
 from .models import PingRecord, SurveyMeta
 
 _ALT_SOURCE_MIN_NONZERO = 0.5   # >= this fraction of pings with real altitude -> trust the header
 _DEFAULT_SOUND_SPEED_MS = 1500.0
+
+# GA0346 (Oceanic Shoals, Timor Sea) and other AUV side-scan lines store navigation as
+# projected metres (XTF NavUnits == 0), not degrees. Zone is not in the XTF header, so it
+# is configured here and overridable per call.
+SURVEY_UTM_EPSG = 32752          # WGS84 / UTM zone 52S
+_ALT_SANE_MAX_M = 150.0          # a fish/AUV altitude above this is a bad header value, not real
+AUV_NOMINAL_ALTITUDE_M = 12.0    # used when the header altitude is unusable AND the water
+                                 # column has been removed (no blank zone to measure); AUV
+                                 # side-scan flies ~10-15 m over the seabed. Flagged
+                                 # blank_zone_estimate so every error radius widens.
+_TRIGGER_HZ_FALLBACK = 5.0       # readme.TXT: SSS trigger 5 Hz — used only if ping times are absent
+# channel centre frequency when the ping headers don't carry it (readme.TXT bands)
+_FREQ_KHZ_BY_NAME = (("LF", 105), ("HF", 410))
 
 
 def _patch_pyxtf_channels() -> None:
@@ -51,11 +65,28 @@ def _ping_time(p) -> datetime:
         return datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 
-def read_survey(path: str, primary_khz: int = 400) -> tuple[SurveyMeta, list[PingRecord]]:
-    """Parse an XTF file. Returns (meta, pings) for the requested primary frequency.
+def _chan_type(fh, ch, pos: int) -> int:
+    """TypeOfChannel for a per-ping channel header, via its ChannelNumber into ChanInfo,
+    falling back to positional index when the field is absent."""
+    idx = int(getattr(ch, "ChannelNumber", pos) or pos)
+    if not 0 <= idx < len(fh.ChanInfo):
+        idx = pos
+    return fh.ChanInfo[idx].TypeOfChannel if 0 <= idx < len(fh.ChanInfo) else 0
 
-    ponytail: loads every ping into RAM (fine for the snip files, ~40 MB of samples).
-    Switch to a generator if a full 40k-ping line OOMs.
+
+def read_survey(path: str, primary_khz: int = 400, *,
+                utm_epsg: int = SURVEY_UTM_EPSG,
+                nominal_altitude_m: float = AUV_NOMINAL_ALTITUDE_M,
+                ) -> tuple[SurveyMeta, list[PingRecord]]:
+    """Parse an XTF file. Returns (meta, pings).
+
+    `primary_khz` selects the port/starboard pair when the file carries more than one
+    frequency and tags them; when the headers don't tag frequency (FugroXTF / EdgeTech
+    AUV lines) the single recorded pair is taken and `primary_khz` is only a fallback
+    label. Projected navigation (NavUnits == 0) is converted from EPSG:`utm_epsg` to WGS84.
+
+    ponytail: loads every ping into RAM (~0.5 GB for the big HF lines). Switch to a
+    generator if a full line OOMs.
     """
     fh = None
     raw = []
@@ -69,18 +100,40 @@ def read_survey(path: str, primary_khz: int = 400) -> tuple[SurveyMeta, list[Pin
 
     warnings: list[str] = []
 
-    # --- pick the port/starboard data indices for the requested frequency ---
-    freqs = [int(round(getattr(h, "Frequency", 0) or 0)) for h in raw[0].ping_chan_headers]
-    types = [fh.ChanInfo[i].TypeOfChannel for i in range(len(freqs))]
-    port_idx = stbd_idx = None
-    for i, (f, t) in enumerate(zip(freqs, types)):
-        if f == primary_khz and t == XTFChannelType.port.value and port_idx is None:
-            port_idx = i
-        if f == primary_khz and t == XTFChannelType.stbd.value and stbd_idx is None:
-            stbd_idx = i
+    # --- pick the port/starboard data indices ---
+    # prefer a pair tagged with primary_khz; otherwise take the first port + first stbd
+    # channel present (single-frequency AUV lines don't tag frequency at all).
+    hdrs = raw[0].ping_chan_headers
+    PORT, STBD = XTFChannelType.port.value, XTFChannelType.stbd.value
+    port_idx = stbd_idx = port_any = stbd_any = None
+    for i, ch in enumerate(hdrs):
+        t = _chan_type(fh, ch, i)
+        f = int(round(getattr(ch, "Frequency", 0) or 0))
+        if t == PORT:
+            port_any = i if port_any is None else port_any
+            if f == primary_khz and port_idx is None:
+                port_idx = i
+        elif t == STBD:
+            stbd_any = i if stbd_any is None else stbd_any
+            if f == primary_khz and stbd_idx is None:
+                stbd_idx = i
+    port_idx = port_idx if port_idx is not None else port_any
+    stbd_idx = stbd_idx if stbd_idx is not None else stbd_any
     if port_idx is None or stbd_idx is None:
         raise ValueError(
-            f"{primary_khz} kHz PORT/STBD not found. Channel freqs={freqs} types={types}"
+            f"no PORT/STBD channel pair in {path}; "
+            f"channel types={[_chan_type(fh, c, i) for i, c in enumerate(hdrs)]}"
+        )
+
+    # frequency label: from the header if present, else inferred from the channel name band
+    cn_idx = int(getattr(hdrs[port_idx], "ChannelNumber", port_idx) or port_idx)
+    cname = (bytes(fh.ChanInfo[cn_idx].ChannelName).rstrip(b"\x00").decode(errors="replace")
+             if 0 <= cn_idx < len(fh.ChanInfo) else "").upper()
+    freq_khz = int(round(getattr(hdrs[port_idx], "Frequency", 0) or 0))
+    if not freq_khz:
+        freq_khz = next((khz for tag, khz in _FREQ_KHZ_BY_NAME if tag in cname), primary_khz)
+        warnings.append(
+            f"channel frequency not in headers; inferred {freq_khz} kHz from name {cname!r}"
         )
 
     # --- sound speed: Isis stores c/2 in SoundVelocity for this sonar ---
@@ -90,6 +143,13 @@ def read_survey(path: str, primary_khz: int = 400) -> tuple[SurveyMeta, list[Pin
         warnings.append(
             f"SoundVelocity header value {sv} unusable; assumed {sound_speed} m/s"
         )
+
+    # --- navigation: degrees (NavUnits == 3) or projected metres (NavUnits == 0) ---
+    nav_is_utm = int(getattr(fh, "NavUnits", 3) or 0) == 0
+    to_wgs84 = (Transformer.from_crs(f"EPSG:{utm_epsg}", "EPSG:4326", always_xy=True)
+                if nav_is_utm else None)
+    if nav_is_utm:
+        warnings.append(f"navigation is projected metres; converted from EPSG:{utm_epsg} to WGS84")
 
     n0 = raw[0].data[port_idx].size
     pings: list[PingRecord] = []
@@ -110,10 +170,14 @@ def read_survey(path: str, primary_khz: int = 400) -> tuple[SurveyMeta, list[Pin
         fs = port.size / dur if dur > 0 else 0.0
         slant = float(getattr(ch, "SlantRange", 0) or 0)
 
-        lat = float(p.SensorYcoordinate)
-        lon = float(p.SensorXcoordinate)
-        if lat == 0.0 and lon == 0.0:
+        ny = float(p.SensorYcoordinate)
+        nx = float(p.SensorXcoordinate)
+        if nx == 0.0 and ny == 0.0:
             lat = lon = float("nan")
+        elif to_wgs84 is not None:
+            lon, lat = to_wgs84.transform(nx, ny)
+        else:
+            lat, lon = ny, nx
         alt = float(p.SensorPrimaryAltitude or 0.0)
 
         lats.append(lat); lons.append(lon); alts.append(alt)
@@ -136,13 +200,28 @@ def read_survey(path: str, primary_khz: int = 400) -> tuple[SurveyMeta, list[Pin
         ))
 
     alts_arr = np.array(alts)
-    nonzero = float(np.mean(alts_arr > 0)) if alts_arr.size else 0.0
-    if nonzero < 1.0:
+    sane = alts_arr[(alts_arr > 0) & (alts_arr < _ALT_SANE_MAX_M)]
+    if sane.size >= _ALT_SOURCE_MIN_NONZERO * len(alts_arr):
+        altitude_source = "xtf_header"
+        altitude_mean = float(sane.mean())
+        if sane.size < len(alts_arr):
+            warnings.append(
+                f"{len(alts_arr) - sane.size} of {len(alts_arr)} pings "
+                f"({(1 - sane.size / len(alts_arr)) * 100:.1f}%) have no usable altitude"
+            )
+    else:
+        # header altitude blank or absurd (FugroXTF writes AUV depth here, ~3000 m) and the
+        # water column is gone, so there is no blank zone to measure - fall back to a nominal
+        # AUV survey altitude and widen every error radius on this survey.
+        altitude_source = "blank_zone_estimate"
+        altitude_mean = float(nominal_altitude_m)
+        med = float(np.median(alts_arr[alts_arr > 0])) if (alts_arr > 0).any() else 0.0
+        for pr in pings:
+            pr.altitude_m = float(nominal_altitude_m)
         warnings.append(
-            f"{int((alts_arr <= 0).sum())} of {len(alts_arr)} pings "
-            f"({(1 - nonzero) * 100:.1f}%) have no altitude"
+            f"header altitude unusable (median {med:.0f} m); using nominal AUV altitude "
+            f"{nominal_altitude_m:.0f} m - positions carry higher uncertainty"
         )
-    altitude_source = "xtf_header" if nonzero >= _ALT_SOURCE_MIN_NONZERO else "blank_zone_estimate"
 
     lat_arr = np.array(lats); lon_arr = np.array(lons)
     finite = np.isfinite(lat_arr) & np.isfinite(lon_arr)
@@ -154,6 +233,11 @@ def read_survey(path: str, primary_khz: int = 400) -> tuple[SurveyMeta, list[Pin
     }
 
     duration_s = (pings[-1].time - pings[0].time).total_seconds()
+    if duration_s <= 0 and len(pings) > 1:
+        duration_s = (len(pings) - 1) / _TRIGGER_HZ_FALLBACK
+        warnings.append(
+            f"ping timestamps absent; duration estimated at {_TRIGGER_HZ_FALLBACK:.0f} Hz trigger"
+        )
 
     meta = SurveyMeta(
         filename=path.replace("\\", "/").split("/")[-1],
@@ -161,10 +245,10 @@ def read_survey(path: str, primary_khz: int = 400) -> tuple[SurveyMeta, list[Pin
         ping_count=len(pings),
         samples_per_channel=n0,
         range_m=pings[0].slant_range_m,
-        frequency_khz=primary_khz,
+        frequency_khz=freq_khz,
         duration_s=duration_s,
         altitude_source=altitude_source,
-        altitude_mean_m=float(alts_arr[alts_arr > 0].mean()) if (alts_arr > 0).any() else 0.0,
+        altitude_mean_m=altitude_mean,
         sound_speed_ms=sound_speed,
         bounds=bounds,
         start_time=pings[0].time,
