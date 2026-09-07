@@ -121,6 +121,55 @@ def create_demo_survey(n_tiles: int = 24, width: int = 1024) -> Survey:
     return s
 
 
+def create_image_survey(images: list[tuple[str, bytes]], width: int = 1024) -> Survey:
+    """Register a pseudo-survey from uploaded sonar image tiles + synthetic straight-line
+    nav. Lets any side-scan image be run through detection + playback. Not an XTF -
+    geometry is not real, so it carries a warning and no true coordinates.
+    """
+    import cv2
+
+    from backend.ingest.models import PingRecord
+
+    mats = []
+    for name, data in images:
+        arr = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_GRAYSCALE)
+        if arr is None:
+            raise ValueError(f"could not decode image: {name}")
+        mats.append(cv2.resize(arr, (width, width)))
+    if not mats:
+        raise ValueError("no images")
+    wf = np.vstack(mats).astype(np.uint8)
+    n = wf.shape[0]
+
+    lat0, lon0 = 13.05, 80.30
+    c, slant_range_m = 1500.0, 60.0
+    fs = (width // 2) * c / (2 * slant_range_m)
+    dlon = 0.15 / (111_320.0 * np.cos(np.deg2rad(lat0)))
+    t0 = datetime.now(timezone.utc).replace(microsecond=0)
+    pings = [PingRecord(
+        ping_number=i, time=t0 + timedelta(seconds=0.2 * i),
+        lat=lat0, lon=lon0 + dlon * i,
+        heading_deg=90.0, pitch_deg=0.0, roll_deg=0.0, heave_m=0.0,
+        altitude_m=12.0, sound_speed_ms=c, sample_rate_hz=fs, slant_range_m=slant_range_m,
+        port=wf[i, :width // 2], starboard=wf[i, width // 2:],
+    ) for i in range(n)]
+
+    meta = SurveyMeta(
+        filename=f"IMAGES-{len(mats)}-tiles", path="", ping_count=n,
+        samples_per_channel=width // 2, range_m=slant_range_m, frequency_khz=0,
+        duration_s=0.2 * n, altitude_source="xtf_header", altitude_mean_m=12.0,
+        sound_speed_ms=c,
+        bounds={"north": lat0, "south": lat0, "east": lon0 + dlon * n, "west": lon0},
+        start_time=t0, sonar_name="uploaded images", recording_program="deepsight-image",
+        warnings=["Image upload: synthetic navigation, coordinates are not real."],
+    )
+    s = Survey(survey_id="svy_img" + secrets.token_hex(3), filename=meta.filename,
+               path="", size_bytes=int(wf.nbytes), created_at=_now(), status="ready",
+               meta=meta, pings=pings, prerendered=wf, progress=1.0, pings_processed=n)
+    SURVEYS[s.survey_id] = s
+    return s
+
+
 def parse_survey(sid: str) -> None:
     """Blocking parse — run via BackgroundTasks / asyncio.to_thread."""
     s = SURVEYS.get(sid)

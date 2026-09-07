@@ -1,10 +1,10 @@
 """AI4Shipwrecks binary masks -> YOLO boxes (implementation_garv.md section 2.2 / section 8 Step 6).
 
-Masks are single-channel PNG, values {0,1}: 1 = shipwreck. One wreck often breaks into
-several blobs, so the mask is dilated before connected-components to merge them, then
-tiny specks are dropped. One box per surviving component, class 0 (wreck).
-
-Used by backend/detect/dataset.py; also runnable standalone for a quick count.
+Masks are single-channel PNG, values {0,1}: 1 = shipwreck. A single wreck's return is
+fragmented by its own shadow, so a naive connected-components pass yields ~6 boxes per
+wreck and the detector learns a smeared target (wreck mAP50 ~0.30). Fix: morphological
+CLOSE to bridge the shadow gaps, then merge components whose bounding boxes are within
+_MERGE_GAP_PX of each other. Result is ~1-2 boxes per wreck.
 """
 
 from __future__ import annotations
@@ -13,9 +13,34 @@ import cv2
 import numpy as np
 
 WRECK_CLASS = 0
-_DILATE_PX = 9            # merge blobs of one wreck that the mask fragments
-_MIN_AREA_PX = 25         # drop specks
-_MIN_SIDE_PX = 4
+_CLOSE_PX = 25           # bridge shadow gaps inside one wreck
+_MERGE_GAP_PX = 40       # merge component bboxes closer than this
+_MIN_AREA_PX = 80        # drop specks (post-close)
+_MIN_SIDE_PX = 6
+
+
+def _merge_close(boxes: list[list[int]], gap: int) -> list[tuple[int, int, int, int]]:
+    """Union-merge boxes whose gap-expanded rects overlap. Repeats to fixpoint."""
+    boxes = [list(b) for b in boxes]
+    changed = True
+    while changed:
+        changed = False
+        out: list[list[int]] = []
+        for b in boxes:
+            bx0, by0, bx1, by1 = b[0] - gap, b[1] - gap, b[0] + b[2] + gap, b[1] + b[3] + gap
+            for o in out:
+                ox0, oy0, ox1, oy1 = o[0], o[1], o[0] + o[2], o[1] + o[3]
+                if bx0 < ox1 and ox0 < bx1 and by0 < oy1 and oy0 < by1:
+                    nx0, ny0 = min(o[0], b[0]), min(o[1], b[1])
+                    nx1 = max(o[0] + o[2], b[0] + b[2])
+                    ny1 = max(o[1] + o[3], b[1] + b[3])
+                    o[0], o[1], o[2], o[3] = nx0, ny0, nx1 - nx0, ny1 - ny0
+                    changed = True
+                    break
+            else:
+                out.append(list(b))
+        boxes = out
+    return [tuple(b) for b in boxes]
 
 
 def mask_to_boxes(mask: np.ndarray) -> list[tuple[int, int, int, int]]:
@@ -23,20 +48,14 @@ def mask_to_boxes(mask: np.ndarray) -> list[tuple[int, int, int, int]]:
     m = (mask > 0).astype(np.uint8)
     if not m.any():
         return []
-    k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (_DILATE_PX, _DILATE_PX))
-    m = cv2.dilate(m, k, iterations=1)
+    k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (_CLOSE_PX, _CLOSE_PX))
+    m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, k)
     n, _, stats, _ = cv2.connectedComponentsWithStats(m, 8)
-    out = []
-    for i in range(1, n):
-        x, y, w, h, area = stats[i]
-        if area < _MIN_AREA_PX or w < _MIN_SIDE_PX or h < _MIN_SIDE_PX:
-            continue
-        # undo the dilation halo
-        pad = _DILATE_PX // 2
-        x, y = x + pad, y + pad
-        w, h = max(1, w - 2 * pad), max(1, h - 2 * pad)
-        out.append((int(x), int(y), int(w), int(h)))
-    return out
+    comps = [[int(stats[i, 0]), int(stats[i, 1]), int(stats[i, 2]), int(stats[i, 3])]
+             for i in range(1, n)
+             if stats[i, 4] >= _MIN_AREA_PX
+             and stats[i, 2] >= _MIN_SIDE_PX and stats[i, 3] >= _MIN_SIDE_PX]
+    return _merge_close(comps, _MERGE_GAP_PX)
 
 
 def boxes_to_yolo(boxes, img_w: int, img_h: int, cls: int = WRECK_CLASS) -> list[str]:

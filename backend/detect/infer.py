@@ -104,7 +104,24 @@ def detect_survey(survey, conf: float = CONF) -> list[dict]:
 
     from backend.detect.suppress import apply_rules
 
-    return apply_rules(_dedup(raw), wf, width)
+    dets = apply_rules(_dedup(raw), wf, width)
+    if survey.meta is None:
+        return dets
+
+    from backend.geometry.locate import locate_detection
+
+    located = []
+    for d in dets:
+        geo = locate_detection(all_pings=pings, ping_index=min(d["ping"], n - 1),
+                               bbox_px=d["bbox_px"], channel=d["channel"],
+                               width=width, meta=survey.meta)
+        # a hit inside the nadir gap has no seabed return - dropping it is correct
+        # (implementation_garv.md section 3.2), not a missed detection
+        if geo["_geometry"]["ground_range_m"] <= 0.0:
+            continue
+        d.update(geo)
+        located.append(d)
+    return located
 
 
 if __name__ == "__main__":

@@ -35,6 +35,8 @@ class PingRecord:
     slant_range_m: float           # recorded SlantRange (the operator range setting)
     port: np.ndarray
     starboard: np.ndarray
+    cable_out_m: float = 0.0       # XTF CableOut; 0.0 when not recorded (then layback is bounded)
+    fish_depth_m: float = 0.0      # XTF SensorDepth; 0.0 when not recorded
 
     @property
     def samples_per_channel(self) -> int:

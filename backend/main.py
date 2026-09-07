@@ -76,6 +76,22 @@ def demo_survey() -> dict:
             "ping_count": s.ping_count}
 
 
+@app.post("/api/surveys/image", status_code=201)
+async def upload_images(files: list[UploadFile]) -> dict:
+    """Register a pseudo-survey from uploaded side-scan images (PNG/JPG), stacked with
+    synthetic nav. Run /process, then playback. Coordinates are not real (see warnings)."""
+    imgs = [(f.filename or "img", await f.read()) for f in files]
+    total = sum(len(b) for _, b in imgs)
+    if total > state.MAX_BYTES:
+        raise ApiError("FILE_TOO_LARGE", 413, "Images exceed the 500 MB limit.")
+    try:
+        s = state.create_image_survey(imgs)
+    except ValueError as exc:
+        raise ApiError("PARSE_FAILED", 422, str(exc))
+    return {"survey_id": s.survey_id, "filename": s.filename, "status": s.status,
+            "ping_count": s.ping_count}
+
+
 @app.get("/api/surveys")
 def list_surveys() -> dict:
     items = sorted(state.SURVEYS.values(), key=lambda s: s.created_at, reverse=True)

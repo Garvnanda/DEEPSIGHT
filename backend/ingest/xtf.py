@@ -131,6 +131,8 @@ def read_survey(path: str, primary_khz: int = 400) -> tuple[SurveyMeta, list[Pin
             slant_range_m=slant,
             port=port,
             starboard=stbd,
+            cable_out_m=float(getattr(p, "CableOut", 0.0) or 0.0),
+            fish_depth_m=float(getattr(p, "SensorDepth", 0.0) or 0.0),
         ))
 
     alts_arr = np.array(alts)
