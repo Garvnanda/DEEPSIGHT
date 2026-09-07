@@ -111,6 +111,15 @@ def get_survey(sid: str) -> dict:
     return state.survey_detail(_get(sid))
 
 
+@app.delete("/api/surveys/{sid}", status_code=204)
+def delete_survey(sid: str) -> Response:
+    """Drop a survey and everything derived from it. In-memory store, so this frees the
+    RAM immediately. 404 if it was already gone."""
+    _get(sid)
+    state.SURVEYS.pop(sid, None)
+    return Response(status_code=204)
+
+
 def _run_detection(sid: str) -> None:
     from backend.detect.infer import detect_survey
 
@@ -173,7 +182,7 @@ def get_waterfall(sid: str, start_ping: int, count: int, corrected: bool = False
     if s.prerendered is not None:
         u8 = np.ascontiguousarray(s.prerendered[start_ping:start_ping + count])
     else:
-        u8 = display.to_u8(pings)
+        u8 = display.to_u8(pings, width=s.display_width)
     if corrected:
         u8 = _slant_correct(u8, pings, s.meta.sound_speed_ms)
     ok, buf = cv2.imencode(".png", u8)
@@ -300,7 +309,7 @@ async def playback(ws: WebSocket, sid: str):
         if s.prerendered is not None:
             u8 = np.ascontiguousarray(s.prerendered[cur:cur + batch])
         else:
-            u8 = display.to_u8(chunk)
+            u8 = display.to_u8(chunk, width=s.display_width)
         nav = [{
             "ping": cur + i,
             "lat": None if not math.isfinite(p.lat) else p.lat,

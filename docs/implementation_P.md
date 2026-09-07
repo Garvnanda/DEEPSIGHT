@@ -253,6 +253,11 @@ coordinate?"*, so it deserves real design attention:
 Confidence is labelled **"detector score"**. Never "probability", never "certainty", never "% sure". We
 have not calibrated it and we do not imply that we have.
 
+**Deleting a survey.** `DELETE /api/surveys/{id}` (contract §1, added post-freeze with the owner's
+agreement) removes a survey from the store. Expose it from the Surveys list row menu and the console
+header. `204` = gone; `404` = already gone (treat as success). Always confirm first — it is
+irreversible.
+
 ---
 
 ## 7 · Honesty requirements

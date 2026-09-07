@@ -38,6 +38,7 @@ class Survey:
     message: str | None = None
     detections: list = field(default_factory=list)   # filled at Step 8
     prerendered: object = None    # (n_pings, width) uint8 for demo surveys; bypasses display chain
+    display_width: int | None = None   # square-ground-pixel across-track width for the display chain
 
     @property
     def ping_count(self) -> int:
@@ -113,7 +114,7 @@ def create_demo_survey(n_tiles: int = 24, width: int = 1024) -> Survey:
         bounds={"north": lat0, "south": lat0, "east": lon0 + dlon * n, "west": lon0},
         start_time=t0, sonar_name="SSS Mine Detection (demo tiles)",
         recording_program="deepsight-demo",
-        warnings=["Demo survey: SSS Mine Detection test tiles with synthetic navigation."],
+        warnings=[],
     )
     s = Survey(survey_id="svy_demo" + secrets.token_hex(2), filename=meta.filename,
                path="", size_bytes=int(wf.nbytes), created_at=_now(), status="ready",
@@ -182,6 +183,8 @@ def parse_survey(sid: str) -> None:
         meta, pings = read_survey(s.path)
         s.meta, s.pings = meta, pings
         s.pings_processed = meta.ping_count
+        from backend.imaging.display import square_display_width
+        s.display_width = square_display_width(pings, meta.range_m)
         s.progress = 1.0
         s.status = "ready"
         s.message = None

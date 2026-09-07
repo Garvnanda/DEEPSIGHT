@@ -17,7 +17,7 @@ from functools import lru_cache
 
 import numpy as np
 
-from backend.imaging import display
+from backend.imaging import analysis, display  # noqa: F401 (display kept for callers)
 from backend.schemas import CLASS_DISPLAY
 
 WEIGHTS = "backend/detect/weights/best.pt"
@@ -63,7 +63,10 @@ def detect_survey(survey, conf: float = CONF) -> list[dict]:
     if not pings:
         return []
     model = load_model()
-    wf = survey.prerendered if survey.prerendered is not None else display.to_u8(pings)
+    # detector runs on the ANALYSIS chain (log + nadir mask + wavelet despeckle), never the
+    # display chain (idea.md section 6). prerendered surveys are already-processed imagery
+    # (demo tiles / uploaded PNGs) - leave those untouched.
+    wf = survey.prerendered if survey.prerendered is not None else analysis.to_u8_analysis(pings)
     wf = np.ascontiguousarray(wf)             # (n_pings, width) uint8
     n, width = wf.shape
     m_per_px_across = (survey.meta.range_m * 2 / width) if survey.meta else 0.0
@@ -102,26 +105,35 @@ def detect_survey(survey, conf: float = CONF) -> list[dict]:
                 "_geometry": None,
             })
 
-    from backend.detect.suppress import apply_rules
+    from backend.detect.suppress import apply_rules, rule3_height_footprint
 
     dets = apply_rules(_dedup(raw), wf, width)
     if survey.meta is None:
         return dets
 
     from backend.geometry.locate import locate_detection
+    from backend.geometry.shadow import object_height_m
 
+    m_per_px_across = (survey.meta.range_m * 2 / width) if width else 0.0
     located = []
     for d in dets:
         geo = locate_detection(all_pings=pings, ping_index=min(d["ping"], n - 1),
                                bbox_px=d["bbox_px"], channel=d["channel"],
                                width=width, meta=survey.meta)
+        g = geo["_geometry"]
         # a hit inside the nadir gap has no seabed return - dropping it is correct
         # (implementation_garv.md section 3.2), not a missed detection
-        if geo["_geometry"]["ground_range_m"] <= 0.0:
+        if g["ground_range_m"] <= 0.0:
             continue
         d.update(geo)
+        d["object_height_m"] = object_height_m(
+            wf, d["bbox_px"], d["channel"],
+            altitude_m=g["altitude_m"], ground_range_m=g["ground_range_m"],
+            slant_range_m=g["slant_range_m"], m_per_px_across=m_per_px_across,
+        )
         located.append(d)
-    return located
+
+    return rule3_height_footprint(located)
 
 
 if __name__ == "__main__":

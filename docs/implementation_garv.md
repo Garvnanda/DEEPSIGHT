@@ -455,6 +455,11 @@ detections endpoints.
 
 **Step 9 — Report engine + stats.** JSON, CSV, `method_notes`, the headline string.
 
+> **Contract addition (post-freeze, agreed with the owner).** `DELETE /api/surveys/{survey_id}`
+> removes a survey from the in-memory store — `204` on success, `404` if already gone. Added so the
+> console can clear a bad upload without a restart. Documented in `apiendpoints.md` §1 and
+> `implementation_P.md` §6.
+
 **Step 10 — Evaluation.** Full protocol, cross-dataset, all three baselines, coverage check on the error
 radius.
 

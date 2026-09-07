@@ -11,9 +11,14 @@ No second model. Rules run after detection + de-dup.
           version is ~1 m^2 of ground area and needs the geometry module (Step 5) to
           convert; until then this is a conservative pixel floor. ponytail: pixel
           floor, swap for real ground area once geometry lands. Tune against labels.
-  Rule 3  height-to-footprint — shadow length + altitude + range -> object height;
-          manufactured objects violate the natural ratio. Needs geometry (Step 5).
-          Not yet active.
+  Rule 3  height-to-footprint — shadow length + altitude + range -> object height
+          (geometry/shadow.py); a natural bottom object is roughly as tall as it is wide,
+          a manufactured object is not (a pipe is long and low). Runs AFTER geometry, in
+          rule3_height_footprint(). ponytail: heuristic ratio band tuned by eye against
+          the demo, not a law - flat slabs and erratics violate it, so it only DROPS a
+          detection when it is also low-confidence and classed as a target. Everything
+          else is left exactly as-is (the object_height_m value carries the signal into
+          the detail panel; the flag set stays the frozen contract's five values).
 
 Conservative by design: on a sparse demo an aggressive filter empties the screen.
 """
@@ -24,6 +29,8 @@ import numpy as np
 
 MIN_BOX_AREA_PX = 12 * 12        # Rule 2 placeholder floor - conservative, kills specks only
 RULE1_BRIGHTER_MARGIN = 1.02     # far (outboard) strip brighter than the box itself -> no shadow -> artifact
+RULE3_NATURAL_LO, RULE3_NATURAL_HI = 0.5, 1.6   # height/footprint band that reads as "rock"
+RULE3_DROP_CONF = 0.40          # below this AND rock-shaped AND a target class -> drop
 
 
 def _rule1_shadow_direction(d: dict, wf: np.ndarray, width: int) -> bool:
@@ -46,11 +53,7 @@ def _rule1_shadow_direction(d: dict, wf: np.ndarray, width: int) -> bool:
     box_mean = float(wf[y0:y1, max(0, x):min(width, x + w)].mean())
     far_mean = float(wf[y0:y1, fx0:fx1].mean())
     # a genuine object has a DARKER shadow outboard; drop only if outboard is clearly brighter
-    if far_mean > box_mean * RULE1_BRIGHTER_MARGIN:
-        return False
-    if far_mean < box_mean * 0.8:
-        d["flags"] = sorted(set(d["flags"]) | {"shadow_confirmed"})
-    return True
+    return not far_mean > box_mean * RULE1_BRIGHTER_MARGIN
 
 
 def _rule2_min_area(d: dict) -> bool:
@@ -59,6 +62,7 @@ def _rule2_min_area(d: dict) -> bool:
 
 
 def apply_rules(dets: list[dict], wf: np.ndarray, width: int, enabled: bool = True) -> list[dict]:
+    """Rules 1 and 2 - no geometry needed. Run right after de-dup."""
     if not enabled:
         return dets
     out = []
@@ -67,6 +71,26 @@ def apply_rules(dets: list[dict], wf: np.ndarray, width: int, enabled: bool = Tr
             continue
         if not _rule1_shadow_direction(d, wf, width):
             continue
+        out.append(d)
+    return out
+
+
+_TARGET_CLASSES = {"wreck", "milco", "pipeline"}
+
+
+def rule3_height_footprint(dets: list[dict], enabled: bool = True) -> list[dict]:
+    """Rule 3 - runs AFTER geometry so object_height_m and bbox_m_* are populated.
+    A near-1 height/footprint ratio reads as a natural bottom object. Drop it only when it
+    is also low-confidence and currently classed as a target; otherwise flag and keep."""
+    if not enabled:
+        return dets
+    out = []
+    for d in dets:
+        h = d.get("object_height_m")
+        foot = max(d.get("bbox_m_width") or 0.0, d.get("bbox_m_height") or 0.0)
+        if (h and foot > 0 and RULE3_NATURAL_LO <= h / foot <= RULE3_NATURAL_HI
+                and d["confidence"] < RULE3_DROP_CONF and d["class"] in _TARGET_CLASSES):
+            continue                              # low-confidence rock-shaped target -> drop
         out.append(d)
     return out
 
@@ -85,4 +109,13 @@ if __name__ == "__main__":
 
     tiny = {"bbox_px": {"x": 0, "y": 0, "w": 4, "h": 4}, "class": "milco", "flags": []}
     assert apply_rules([tiny], wf, 400) == [], "sub-floor box should drop"
-    print("suppress.py ok: rule1 keeps shadowed, drops bright-outboard; rule2 drops tiny")
+
+    # Rule 3: rock-shaped (h/foot ~ 1) low-confidence target -> drop; flag otherwise
+    rock = {"class": "milco", "confidence": 0.3, "object_height_m": 1.0,
+            "bbox_m_width": 1.1, "bbox_m_height": 0.9, "flags": []}
+    assert rule3_height_footprint([dict(rock)]) == [], "low-conf rock-shaped target should drop"
+    assert rule3_height_footprint([{**rock, "confidence": 0.8}]), "high-conf rock-shaped should be kept"
+    pipe = {"class": "pipeline", "confidence": 0.3, "object_height_m": 0.4,
+            "bbox_m_width": 6.0, "bbox_m_height": 0.5, "flags": []}
+    assert rule3_height_footprint([dict(pipe)]), "long-and-low object should be kept"
+    print("suppress.py ok: rule1/2 as before; rule3 drops low-conf rock, keeps strong rock + pipe")

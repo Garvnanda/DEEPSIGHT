@@ -98,6 +98,16 @@ Everything the UI needs to set up the view before playback starts.
 
 ---
 
+### `DELETE /api/surveys/{survey_id}`
+Drop a survey and everything derived from it (detections, cached imagery, playback state).
+The store is in-memory, so this frees the RAM at once and the id stops resolving.
+
+- Response `204` with no body on success.
+- `404` with the standard error envelope (§9, code `SURVEY_NOT_FOUND`) if the id was already gone.
+- Irreversible. The frontend must confirm with the user before calling it.
+
+---
+
 ### `POST /api/surveys/{survey_id}/process`
 Kick off detection over the whole survey (headless — separate from live playback).
 

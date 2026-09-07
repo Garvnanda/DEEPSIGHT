@@ -1,0 +1,60 @@
+/* Guided-tour visuals: a CSS-only dimensioned wireframe box and a map ping pulse.
+   No WebGL, no library — nothing here blocks first paint. */
+
+.cuboid-scene {
+  perspective: 900px;
+  perspective-origin: 50% 40%;
+}
+
+.cuboid-box {
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(-22deg) rotateY(-32deg);
+  animation: cuboid-spin 22s linear infinite;
+}
+.cuboid-scene[data-paused='true'] .cuboid-box {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cuboid-box {
+    animation: none;
+  }
+}
+
+@keyframes cuboid-spin {
+  from {
+    transform: rotateX(-22deg) rotateY(-32deg);
+  }
+  to {
+    transform: rotateX(-22deg) rotateY(328deg);
+  }
+}
+
+.cuboid-face {
+  position: absolute;
+  border: 1px solid var(--edge, var(--accent));
+  background: color-mix(in oklch, var(--edge, var(--accent)) 8%, transparent);
+}
+
+.cuboid-ping {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cuboid-ping 2.4s ease-out infinite;
+}
+@keyframes cuboid-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  70%,
+  100% {
+    transform: scale(4.5);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cuboid-ping {
+    animation: none;
+    opacity: 0;
+  }
+}

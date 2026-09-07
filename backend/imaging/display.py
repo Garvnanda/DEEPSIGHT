@@ -13,6 +13,37 @@ import numpy as np
 
 _TVG_WINDOW = 400        # pings averaged for the across-track gain curve
 _CLIP_LO, _CLIP_HI = 1.0, 99.0
+_EARTH_M_PER_DEG = 111_320.0
+
+
+def along_track_spacing_m(pings) -> float:
+    """Median ship/fish advance between consecutive pings, metres. This is the along-track
+    ground sampling; one ping is one waterfall row."""
+    lat = np.array([p.lat for p in pings], dtype=float)
+    lon = np.array([p.lon for p in pings], dtype=float)
+    ok = np.isfinite(lat) & np.isfinite(lon)
+    if ok.sum() < 3:
+        return 0.0
+    lat, lon = lat[ok], lon[ok]
+    mlat = np.deg2rad(np.nanmean(lat))
+    dn = np.diff(lat) * _EARTH_M_PER_DEG
+    de = np.diff(lon) * _EARTH_M_PER_DEG * np.cos(mlat)
+    d = np.hypot(dn, de)
+    d = d[d > 0]
+    return float(np.median(d)) if d.size else 0.0
+
+
+def square_display_width(pings, range_m: float) -> int:
+    """Across-track pixel count that makes ground pixels square: the full swath is
+    2 * range_m metres wide, and we want that at the along-track sampling
+    (implementation_garv.md section 4.1 step 5). Falls back to the native width when the
+    navigation can't give a spacing."""
+    spacing = along_track_spacing_m(pings)
+    native = 2 * (pings[0].port.size if pings else 512)
+    if spacing <= 0 or range_m <= 0:
+        return native
+    w = int(round(2 * range_m / spacing))
+    return int(np.clip(w, 256, native))     # never upsample past what was recorded
 
 
 def stack(pings, reverse_starboard: bool = True) -> np.ndarray:
