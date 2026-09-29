@@ -1,0 +1,43 @@
+.rb-slider-wrapper {
+  display: flex;
+  width: 100%;
+  touch-action: none;
+  user-select: none;
+  align-items: center;
+  gap: 0.6rem;
+}
+.rb-slider-root {
+  position: relative;
+  display: flex;
+  width: 100%;
+  flex-grow: 1;
+  cursor: grab;
+  touch-action: none;
+  align-items: center;
+  padding: 0.75rem 0;
+}
+.rb-slider-root:active {
+  cursor: grabbing;
+}
+.rb-slider-track-wrapper {
+  display: flex;
+  flex-grow: 1;
+}
+.rb-slider-track {
+  position: relative;
+  height: 100%;
+  flex-grow: 1;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: color-mix(in oklch, var(--muted-foreground) 30%, transparent);
+}
+.rb-slider-range {
+  position: absolute;
+  height: 100%;
+  background-color: var(--accent);
+  border-radius: 9999px;
+}
+.rb-slider-icon {
+  display: inline-flex;
+  color: var(--muted-foreground);
+}

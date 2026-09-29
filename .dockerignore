@@ -1,0 +1,4 @@
+*
+!backend/
+backend/**/__pycache__
+backend/detect/weights/best_*.pt

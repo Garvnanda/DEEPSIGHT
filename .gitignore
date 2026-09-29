@@ -2,6 +2,7 @@
 data/
 *.xtf
 
+data.zip
 
 # Python
 __pycache__/
